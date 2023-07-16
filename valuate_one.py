@@ -4,7 +4,7 @@ import numpy as np
 import pickle
 from model_train import features_encode
 
-path = '/home/user2/srb/4zida/apartments/sale'
+path = './4zida/apartments/sale'
 df = st.cache_resource(pd.read_parquet)(path+"/prepared.parquet")
 @st.cache_resource
 def complex_func(f):
