@@ -22,9 +22,6 @@ def train(path):
               'Uknjiženost', 'Grejanje', 'Infrastruktura', 'floors']].drop_duplicates().copy()
     df['ppm'] = df['price'] / df['area']
     df = df[df.area.between(20, 200)]
-    #df = df[df.ppm.between(500, 10_000)]
-    #df = df[df.price.between(30_000, 1_000_000)]
-    #df = df[df.rooms.between(0, 10)]
     df['target'] = np.log1p(df['price'] / df['area'])
     print(len(df))
     df_nonencoded = df.copy()

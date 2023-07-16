@@ -9,7 +9,7 @@ def get_links(path, link, pattern):
     old_links = seen_links(path)
 
     links_file_name = path+'/links/links_'+str(datetime.datetime.now().date())+'.txt'
-    for i in range(150):
+    for i in range(99):
         print(i)
         page = requests.get(link+str(i+1))
         #page = requests.get('https://www.4zida.rs/prodaja-stanova/beograd?strana='+str(i+1))
@@ -65,7 +65,7 @@ def get_pages(path):
             page = requests.get(l)
             p = page.content.decode('utf-8')
             # print(p)
-            items = re.findall(r"\"label\">([\w\s\d\\]+):<\/div><strong _ngcontent-sc\d+=\"\" class=\"value \w+-\w+ \w+-\w+\">([\w\d\s\\\/., ]+)\s?", p)
+            items = re.findall(r"\"label\">([\w\s\d\\]+):<\/div><strong _ngcontent-sc\d+=\"\" class=\"value \w+-\w+ \w+-\w+\">([\w\d\s\\\/., \(\)]+)\s?", p)
             for item in items:
                 ret[item[0]] = item[1]
             price = re.findall(r"class=\"label\">Cena:<\/div><div _ngcontent-sc\d+=\"\" class=\"value\"><strong _ngcontent.sc\d+=\"\">([\d\.]+)", p)
@@ -93,10 +93,6 @@ def get_pages(path):
 
 
 
-
-
-
-
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     #rent
@@ -111,9 +107,36 @@ if __name__ == '__main__':
     #sale
     #get links
     path = '4zida/apartments/sale'
-    link = 'https://www.4zida.rs/prodaja-stanova?jeftinije_od=10000eur&strana='
+    links = ['https://www.4zida.rs/prodaja-stanova?skuplje_od=10000eur&jeftinije_od=50000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=50000eur&jeftinije_od=60000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=60000eur&jeftinije_od=65000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=65000eur&jeftinije_od=70000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=70000eur&jeftinije_od=75000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=75000eur&jeftinije_od=80000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=80000eur&jeftinije_od=85000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=85000eur&jeftinije_od=90000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=90000eur&jeftinije_od=95000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=95000eur&jeftinije_od=100000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=100000eur&jeftinije_od=105000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=105000eur&jeftinije_od=110000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=110000eur&jeftinije_od=115000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=115000eur&jeftinije_od=120000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=120000eur&jeftinije_od=125000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=125000eur&jeftinije_od=130000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=130000eur&jeftinije_od=140000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=140000eur&jeftinije_od=150000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=150000eur&jeftinije_od=160000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=160000eur&jeftinije_od=180000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=180000eur&jeftinije_od=200000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=200000eur&jeftinije_od=240000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=240000eur&jeftinije_od=300000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=300000eur&jeftinije_od=500000eur&strana=',
+             'https://www.4zida.rs/prodaja-stanova?skuplje_od=500000eur&strana=',
+             ]
+    link = 'https://www.4zida.rs/prodaja-stanova?skuplje_od=10000eur&strana='
     pattern = r"https:\/\/www.4zida.rs\/prodaja-stanova\/[^/]+\/[^/]+\/[^/\"]+"
-    get_links(path, link, pattern)
+    for link in links:
+        get_links(path, link, pattern)
     #get pages
     get_pages(path)
 

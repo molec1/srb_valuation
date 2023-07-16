@@ -1,7 +1,10 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
 import pickle
+import plotly_express as px
+
+import numpy as np
+import pandas as pd
+import streamlit as st
+
 from model_train import features_encode
 
 path = './4zida/apartments/sale'
@@ -16,7 +19,8 @@ reg = complex_func(path+'/model.sav')
 property = {}
 property['city'] = st.selectbox('City:', df['city'].unique())
 property['region'] = st.selectbox('Region:', df.loc[df['city'] == property['city'], 'region'].sort_values().unique())
-property['landmark'] = st.selectbox('Landmark:', df.loc[(df['city'] == property['city'])&(df['region'] == property['region']), \
+property['landmark'] = st.selectbox('Landmark:', df.loc[(df['city'] == property['city'])&
+                                                        (df['region'] == property['region']), \
     'landmark'].sort_values().unique())
 property['street'] = st.selectbox('Street:', df.loc[(df['city'] == property['city'])&
                                                     (df['region'] == property['region'])&
@@ -61,3 +65,11 @@ if property['area']>0:
               'Grejanje', 'Stanje', 'parking_places', 'garage_places', 'link']
              ])
 
+def plot_str_graph(x):
+    fig = px.scatter(df.groupby([x], as_index=False, dropna=False).ppm.mean(), x =x, y='ppm')
+    # Plot!
+    st.plotly_chart(fig)
+
+for x in ['city', 'date_update', 'rooms', 'Grejanje', 'Stanje', 'floor_number', 'Lift', 'Tip',
+          'Uknjiženost', 'parking_places', 'garage_places', 'Godina izgradnje']:
+    plot_str_graph(x)
