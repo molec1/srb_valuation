@@ -19,7 +19,7 @@ def train(path):
     df = raw[['area', 'rooms', 'floor_number', 'parking_places', 'garage_places',
               'price', 'city', 'region', 'landmark',
               'Tip', 'Lift', 'Godina izgradnje', 'street', 'link', 'Stanje',
-              'Uknjiženost', 'Grejanje', 'Infrastruktura', 'floors']].drop_duplicates().copy()
+              'Uknjiženost', 'Grejanje', 'Infrastruktura', 'floors', 'Nameštenost']].drop_duplicates().copy()
     df['ppm'] = df['price'] / df['area']
     df = df[df.area.between(20, 200)]
     df['target'] = np.log1p(df['price'] / df['area'])
@@ -99,6 +99,7 @@ def features_encode(df_):
     df = pd.get_dummies(data=df, columns=['Uknjiženost'])
     df = pd.get_dummies(data=df, columns=['Grejanje'])
     df = pd.get_dummies(data=df, columns=['Infrastruktura'])
+    df = pd.get_dummies(data=df, columns=['Nameštenost'])
     df = pd.get_dummies(data=df, columns=['city'])
     df = pd.get_dummies(data=df, columns=['city_region'])
     df = pd.get_dummies(data=df, columns=['city_landmark'])

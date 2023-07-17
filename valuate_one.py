@@ -33,12 +33,13 @@ property['floor_number'] = st.number_input('Floor:', 0, 20, 2)
 property['floors'] = st.number_input('Total floors:', 1, 20, 5)
 property['parking_places'] = st.number_input('Parking places:', 0, 5)
 property['garage_places'] = st.number_input('Garage places:', 0, 5)
-property['Stanje'] = st.selectbox('Condition:', df['Stanje'].sort_values().unique(), 1)
+property['Stanje'] = st.selectbox('Condition:', df['Stanje'].sort_values().unique(), 2)
 property['Uknjiženost'] = st.selectbox('Registered:', df['Uknjiženost'].unique())
 property['Grejanje'] = st.selectbox('Heating:', df['Grejanje'].sort_values().unique(), 1)
 property['Infrastruktura'] = st.selectbox('Additional:', df['Infrastruktura'].unique())
 property['Tip'] = st.selectbox('Type:', df['Tip'].sort_values().unique(), 6)
-property['Lift'] = st.selectbox('Lift:', df['Lift'].unique())
+property['Lift'] = st.selectbox('Lift:', df['Lift'].unique(), 1)
+property['Nameštenost'] = st.selectbox('Nameštenost:', df['Nameštenost'].unique())
 
 # Filter dataframe
 if property['area']>0:
@@ -56,6 +57,7 @@ if property['area']>0:
 
     df['Updated'] = df['date_update']
     df['Price per m2'] = df['ppm'].round(-1)
+
     st.write(df.loc[
                  (df['city'] == property['city']) &
                  (df['region'] == property['region']) &
@@ -65,11 +67,12 @@ if property['area']>0:
               'Grejanje', 'Stanje', 'parking_places', 'garage_places', 'link']
              ])
 
-def plot_str_graph(x):
-    fig = px.scatter(df.groupby([x], as_index=False, dropna=False).ppm.mean(), x =x, y='ppm')
+df['%'] = df.ppm / df.ppm.mean() * 100
+def plot_str_graph(df, x):
+    fig = px.scatter(df.groupby([x], as_index=False, dropna=False)['%'].mean(), x=x, y='%')
     # Plot!
     st.plotly_chart(fig)
 
 for x in ['city', 'date_update', 'rooms', 'Grejanje', 'Stanje', 'floor_number', 'Lift', 'Tip',
           'Uknjiženost', 'parking_places', 'garage_places', 'Godina izgradnje']:
-    plot_str_graph(x)
+    plot_str_graph(df, x)

@@ -14,7 +14,8 @@ def prepare(path):
     underground_markers = ['potkrovlje', 'nan', 'visoko prizemlje', 'suteren', 'prizemlje', 'nisko prizemlje', 'podrum']
     df['floor_number'] = df['Spratnost'].apply(lambda x: str(x).replace(' sprat ', '').replace('.', '').split('/')[0] if str(x).strip() not in underground_markers else 0 if str(x)=='visoko prizemlje' else -1)
     df['floor_number'] = df['floor_number'].apply(lambda x: 0 if x in underground_markers else int(x))
-    df['floors'] = df['Spratnost'].apply(lambda x: int(str(x).split('/')[1].replace(' spratova ', '').replace(' sprata ', '').replace(' sprat ', '')) if len(str(x).split('/'))>1 else 0)
+    df['floors'] = df['Spratnost'].apply(lambda x: str(x).strip().split('/')[1].replace(' spratova', '').replace(' sprata', '').replace(' sprat', '') if len(str(x).strip().split('/'))>1 else '')
+    df['floors'] = df['floors'].apply(lambda x: int(x) if len(x)>1 else 0)
     df['landmark'] = df['address'].apply(lambda x: str(x).split(', ')[0])
     df['region'] = df['address'].apply(lambda x: str(x).split(', ')[-2] if str(x).split(', ')[-2]!='Gradske lokacije' else str(x).split(', ')[-3] if len(str(x).split(', '))>2 else '')
     df['city'] = df['address'].apply(lambda x: str(x).split(', ')[-1])
@@ -32,7 +33,28 @@ def prepare(path):
     df['date_update'] = pd.to_datetime(df['end_date']) .dt.date - df['delay_days'].apply(lambda x: timedelta(days=x))
     df['date_update'] = pd.to_datetime(df['date_update'])
     df['Useljivo'] = df['Useljivo'].apply(lambda  x: str(x).strip())
+    df['Stanje'] = df['Stanje'].apply(lambda  x: str(x).strip())
+    df['Grejanje'] = df['Grejanje'].apply(lambda  x: str(x).strip())
+    df['Lift'] = df['Lift'].apply(lambda  x: str(x).strip())
+    df['Tip'] = df['Tip'].apply(lambda  x: str(x).strip())
     df['Režije'] = '-'
+    df.loc[df['description'].fillna('').str.lower().str.contains('lux stan'), 'Stanje'] = 'luksuzno'
+    df.loc[df['description'].fillna('').str.lower().str.contains('luksuzan'), 'Stanje'] = 'luksuzno'
+    df.loc[df['description'].fillna('').str.lower().str.contains('luxuzan'), 'Stanje'] = 'luksuzno'
+    df.loc[df['description'].fillna('').str.lower().str.contains('luksuzno'), 'Stanje'] = 'luksuzno'
+    df.loc[df['description'].fillna('').str.lower().str.contains('luxuzno'), 'Stanje'] = 'luksuzno'
+    df.loc[df['description'].fillna('').str.lower().str.contains('u izvornom stanju'), 'Stanje'] = 'potrebno renoviranje'
+
+    df.loc[df['description'].fillna('').str.lower().str.contains('stan u kući'), 'Tip'] = 'Stan u kući'
+    df.loc[df['description'].fillna('').str.lower().str.contains('dupleks'), 'Tip'] = 'Dupleks'
+
+    df.loc[df['description'].fillna('').str.lower().str.contains('slobodan park'), 'parking_places'] = 3
+    df.loc[df['description'].fillna('').str.lower().str.contains('parking mesto'), 'parking_places'] = 1
+
+    df.loc[df['description'].fillna('').str.lower().str.contains('centralno grejanje'), 'Grejanje'] = 'centralno grejanje'
+
+    df.loc[df['description'].fillna('').str.lower().str.contains(' ima lift'), 'Lift'] = 'ima lift'
+    df.loc[df['description'].fillna('').str.lower().str.contains('bez lifta'), 'Lift'] = 'bez lifta'
 
     del df['Tramvajske linije']
     del df['Trolejbuske linije']
