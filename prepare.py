@@ -26,7 +26,8 @@ def prepare(path):
     df.loc[df['garage_places']>20, 'garage_places'] = 1
     df.loc[df['garage_places']>4, 'garage_places'] = 5
 
-    df['delay_days'] = df['Oglas ažuriran'].apply(lambda x: int(str(x).split(' ')[1]))
+    df['delay_days'] = df['Oglas ažuriran'].apply(lambda x: int(str(x).split(' ')[1]) if len(str(x).split(' '))>1 else 0)
+    df.loc[df['Oglas ažuriran'].apply(lambda x: len(str(x).split(' ')))<3, 'Oglas ažuriran'] = '   '
     df.loc[df['Oglas ažuriran'].apply(lambda x: str(x).split(' ')[2]).isin(['sat', 'sati', 'sata', 'minut', 'minuta']), 'delay_days'] = 0
     df.loc[df['Oglas ažuriran'].apply(lambda x: str(x).split(' ')[2]).isin(['mesec', 'meseca', 'meseci']), 'delay_days'] = \
         df.loc[df['Oglas ažuriran'].apply(lambda x: str(x).split(' ')[2]).isin(['mesec', 'meseca', 'meseci']), 'delay_days']*30
@@ -38,23 +39,35 @@ def prepare(path):
     df['Lift'] = df['Lift'].apply(lambda  x: str(x).strip())
     df['Tip'] = df['Tip'].apply(lambda  x: str(x).strip())
     df['Režije'] = '-'
-    df.loc[df['description'].fillna('').str.lower().str.contains('lux stan'), 'Stanje'] = 'luksuzno'
-    df.loc[df['description'].fillna('').str.lower().str.contains('luksuzan'), 'Stanje'] = 'luksuzno'
-    df.loc[df['description'].fillna('').str.lower().str.contains('luxuzan'), 'Stanje'] = 'luksuzno'
-    df.loc[df['description'].fillna('').str.lower().str.contains('luksuzno'), 'Stanje'] = 'luksuzno'
-    df.loc[df['description'].fillna('').str.lower().str.contains('luxuzno'), 'Stanje'] = 'luksuzno'
-    df.loc[df['description'].fillna('').str.lower().str.contains('u izvornom stanju'), 'Stanje'] = 'potrebno renoviranje'
 
-    df.loc[df['description'].fillna('').str.lower().str.contains('stan u kući'), 'Tip'] = 'Stan u kući'
-    df.loc[df['description'].fillna('').str.lower().str.contains('dupleks'), 'Tip'] = 'Dupleks'
+    df['lower_description'] = df['description'].fillna('').str.lower()
 
-    df.loc[df['description'].fillna('').str.lower().str.contains('slobodan park'), 'parking_places'] = 3
-    df.loc[df['description'].fillna('').str.lower().str.contains('parking mesto'), 'parking_places'] = 1
+    df.loc[df['lower_description'].str.contains('lux stan'), 'Stanje'] = 'luksuzno'
+    df.loc[df['lower_description'].str.contains('luksuzan'), 'Stanje'] = 'luksuzno'
+    df.loc[df['lower_description'].str.contains('luxuzan'), 'Stanje'] = 'luksuzno'
+    df.loc[df['lower_description'].str.contains('luksuzno'), 'Stanje'] = 'luksuzno'
+    df.loc[df['lower_description'].str.contains('luxuzno'), 'Stanje'] = 'luksuzno'
+    df.loc[df['lower_description'].str.contains('luks,'), 'Stanje'] = 'luksuzno'
+    df.loc[df['lower_description'].str.contains('novogradnja'), 'Stanje'] = 'novo'
+    df.loc[df['lower_description'].str.contains('nov stan'), 'Stanje'] = 'novo'
+    df.loc[df['lower_description'].str.contains('novoizgra'), 'Stanje'] = 'novo'
+    df.loc[df['lower_description'].str.contains('u izvornom stanju'), 'Stanje'] = 'potrebno renoviranje'
 
-    df.loc[df['description'].fillna('').str.lower().str.contains('centralno grejanje'), 'Grejanje'] = 'centralno grejanje'
+    df.loc[df['lower_description'].str.contains('stan u kući'), 'Tip'] = 'Stan u kući'
+    df.loc[df['lower_description'].str.contains('dupleks'), 'Tip'] = 'Dupleks'
+    df.loc[df['lower_description'].str.contains('salonac'), 'Tip'] = 'Salonac'
 
-    df.loc[df['description'].fillna('').str.lower().str.contains(' ima lift'), 'Lift'] = 'ima lift'
-    df.loc[df['description'].fillna('').str.lower().str.contains('bez lifta'), 'Lift'] = 'bez lifta'
+    df.loc[df['lower_description'].str.contains('slobodan park'), 'parking_places'] = 3
+    df.loc[df['lower_description'].str.contains('parking mesto'), 'parking_places'] = 1
+    df.loc[df['lower_description'].str.contains('garaža'), 'garage_places'] = 1
+
+    df.loc[df['lower_description'].str.contains('centralno grejanje'), 'Grejanje'] = 'centralno grejanje'
+
+    df.loc[df['lower_description'].str.contains(' ima lift'), 'Lift'] = 'ima lift'
+    df.loc[df['lower_description'].str.contains('sa liftom'), 'Lift'] = 'ima lift'
+    df.loc[df['lower_description'].str.contains('bez lifta'), 'Lift'] = 'bez lifta'
+
+    df.loc[df['lower_description'].str.contains('kompletno namešten'), 'Nameštenost'] = 'namešteno'
 
     del df['Tramvajske linije']
     del df['Trolejbuske linije']
@@ -64,6 +77,7 @@ def prepare(path):
     del df['Useljivo']
     del df['Useljivo od']
 
+    df = df.loc[df['price'] != 1.]
     if 'sale' in path:
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x)
         df.loc[df['price']<500, 'price'] = df.loc[df['price']<500, 'price']*1000

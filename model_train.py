@@ -90,6 +90,13 @@ def features_encode(df_):
     df['floor_number'] = df['floor_number'].fillna(0)
     df['top_floor'] = ((df['floors'] - df['floor_number'])<1).apply(lambda x: 1 if x else 0)
 
+    df['region_parking'] = df['city_region']+'_has_parking'
+    df.loc[df['parking_places'].fillna(0)==0, 'region_parking'] = 'no_parking'
+    df['region_garage'] = df['city_region'] + '_has_garage'
+    df.loc[df['garage_places'].fillna(0)==0, 'region_garage'] = 'no_garage'
+
+    df['lift_floor'] = df['Lift'].fillna('no_info').apply(lambda x: 'has_lift_' if 'Ima' in x else 'no_lift_') + df['floor_number'].apply(str)
+
     df = pd.get_dummies(data=df, columns=['rooms'])
     df = pd.get_dummies(data=df, columns=['floor_number'])
     df = pd.get_dummies(data=df, columns=['decade'])
@@ -104,6 +111,9 @@ def features_encode(df_):
     df = pd.get_dummies(data=df, columns=['city_region'])
     df = pd.get_dummies(data=df, columns=['city_landmark'])
     df = pd.get_dummies(data=df, columns=['city_street'])
+    df = pd.get_dummies(data=df, columns=['region_parking'])
+    df = pd.get_dummies(data=df, columns=['region_garage'])
+    df = pd.get_dummies(data=df, columns=['lift_floor'])
     return df
 
 

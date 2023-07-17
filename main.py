@@ -111,7 +111,7 @@ if __name__ == '__main__':
     link = 'https://www.4zida.rs/izdavanje-stanova?jeftinije_od=10000eur&strana='
     pattern = r"https:\/\/www.4zida.rs\/izdavanje-stanova\/[^/]+\/[^/]+\/[^/\"]+"
     for link in links:
-        get_links(path, link, pattern)
+        print(1)#get_links(path, link, pattern)
     #get pages
     get_pages(path)
 
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     link = 'https://www.4zida.rs/prodaja-stanova?skuplje_od=10000eur&strana='
     pattern = r"https:\/\/www.4zida.rs\/prodaja-stanova\/[^/]+\/[^/]+\/[^/\"]+"
     for link in links:
-        get_links(path, link, pattern)
+        print(1)#get_links(path, link, pattern)
     #get pages
     get_pages(path)
 
