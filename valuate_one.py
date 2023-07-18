@@ -14,10 +14,12 @@ def complex_func(f):
     return pickle.load(open(f, 'rb'))
 # Won't run again and again.
 reg = complex_func(path+'/model.sav')
+path = './4zida/apartments/rent'
+reg_rent = complex_func(path+'/model.sav')
 
 
 property = {}
-property['city'] = st.selectbox('City:', df['city'].sort_values().unique(), 6)
+property['city'] = st.selectbox('City:', df['city'].sort_values().unique(), 3)
 property['region'] = st.selectbox('Region:', df.loc[df['city'] == property['city'], 'region'].sort_values().unique())
 property['landmark'] = st.selectbox('Landmark:', df.loc[(df['city'] == property['city'])&
                                                         (df['region'] == property['region']), \
@@ -46,14 +48,20 @@ if property['area']>0:
     property_df = pd.DataFrame(property, index=[1])
     property_enc = features_encode(property_df)
     model_cols = reg.feature_names_in_
+    model_cols_rent = reg_rent.feature_names_in_
     property_enc[list(set(model_cols)-set(property_enc.columns))] = 0
+    property_enc[list(set(model_cols_rent)-set(property_enc.columns))] = 0
     property_enc = property_enc.copy()
 
     property_df['Price per m2'] = np.expm1(reg.predict(property_enc[model_cols])).round(1)
-    property_df['Price per m2'] = property_df['Price per m2'].round(len(str(int(property_df['Price per m2'])))-3)
+    property_df['Price per m2'] = property_df['Price per m2'].round(3-len(str(int(property_df['Price per m2']))))
     property_df['Valuated price'] = property_df['Price per m2'] * property_df['area'].round()
+
+    property_df['Rent price per m2'] = np.expm1(reg_rent.predict(property_enc[model_cols_rent])).round(1)
+    property_df['Rent price per m2'] = property_df['Rent price per m2'].round(3-len(str(int(property_df['Rent price per m2']))))
+    property_df['Valuated rent price'] = property_df['Rent price per m2'] * property_df['area'].round()
     # write dataframe to screen
-    st.write(property_df[['Price per m2', 'Valuated price']])
+    st.write(property_df[['Price per m2', 'Valuated price', 'Rent price per m2', 'Valuated rent price']])
 
     df['Updated'] = df['date_update']
     df['Price per m2'] = df['ppm'].round(-1)

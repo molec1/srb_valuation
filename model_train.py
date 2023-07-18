@@ -14,8 +14,7 @@ def mdape(y, pred):
 
 def train(path):
     raw = pd.read_parquet(path+'/prepared.parquet')
-    print(len(raw))
-    print(raw.columns)
+    #print(raw.columns)
     df = raw[['area', 'rooms', 'floor_number', 'parking_places', 'garage_places',
               'price', 'city', 'region', 'landmark',
               'Tip', 'Lift', 'Godina izgradnje', 'street', 'link', 'Stanje',
@@ -23,7 +22,7 @@ def train(path):
     df['ppm'] = df['price'] / df['area']
     df = df[df.area.between(20, 200)]
     df['target'] = np.log1p(df['price'] / df['area'])
-    print(len(df))
+    print('len df:', len(df))
     df_nonencoded = df.copy()
     df = features_encode(df)
     model_cols = list(df.columns)
@@ -41,8 +40,8 @@ def train(path):
 
     reg = linear_model.Ridge(alpha=2, positive=True)
     reg.fit(X_train, y_train)
-    print(reg.intercept_)
-    print(dict(zip(model_cols, reg.coef_)))
+    #print(reg.intercept_)
+    #print(dict(zip(model_cols, reg.coef_)))
     pred_train = reg.predict(X_train)
     pred_test = reg.predict(X_test)
     print('number of features: ', len(model_cols))
@@ -58,10 +57,10 @@ def train(path):
     df['err'] = (df.pred_ppm-df.ppm)/df.ppm
     df=df.sort_values(by='err')
     pd.set_option('display.max_colwidth', None)
-    print(df.head(10)[['link', 'err']])
-    print(df.head(10)[['price', 'area', 'ppm', 'pred_ppm', 'err']])
-    print(df.tail(20)[['link', 'err']])
-    print(df.tail(20)[['price', 'area', 'ppm', 'pred_ppm', 'err']])
+    #print(df.head(10)[['link', 'err']])
+    #print(df.head(10)[['price', 'area', 'ppm', 'pred_ppm', 'err']])
+    #print(df.tail(20)[['link', 'err']])
+    #print(df.tail(20)[['price', 'area', 'ppm', 'pred_ppm', 'err']])
 
 
 def load_model(path):

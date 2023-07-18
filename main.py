@@ -58,7 +58,7 @@ def get_pages(path):
     links = list(set(links) - set(old_links))
     print(len(links))
     scraped = []
-    for l in links[:1000]:
+    for l in links[:2000]:
         try:
             ret = {'link': l}
             print(l)
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     link = 'https://www.4zida.rs/izdavanje-stanova?jeftinije_od=10000eur&strana='
     pattern = r"https:\/\/www.4zida.rs\/izdavanje-stanova\/[^/]+\/[^/]+\/[^/\"]+"
     for link in links:
-        print(1)#get_links(path, link, pattern)
+        get_links(path, link, pattern)
     #get pages
     get_pages(path)
 
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     link = 'https://www.4zida.rs/prodaja-stanova?skuplje_od=10000eur&strana='
     pattern = r"https:\/\/www.4zida.rs\/prodaja-stanova\/[^/]+\/[^/]+\/[^/\"]+"
     for link in links:
-        print(1)#get_links(path, link, pattern)
+        get_links(path, link, pattern)
     #get pages
     get_pages(path)
 

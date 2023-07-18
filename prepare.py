@@ -16,11 +16,14 @@ def prepare(path):
     df['floor_number'] = df['floor_number'].apply(lambda x: 0 if x in underground_markers else int(x))
     df['floors'] = df['Spratnost'].apply(lambda x: str(x).strip().split('/')[1].replace(' spratova', '').replace(' sprata', '').replace(' sprat', '') if len(str(x).strip().split('/'))>1 else '')
     df['floors'] = df['floors'].apply(lambda x: int(x) if len(x)>1 else 0)
+
     df['landmark'] = df['address'].apply(lambda x: str(x).split(', ')[0])
+    df = df.loc[df['address'].apply(lambda x: len(str(x).split(', ')))>2]
     df['region'] = df['address'].apply(lambda x: str(x).split(', ')[-2] if str(x).split(', ')[-2]!='Gradske lokacije' else str(x).split(', ')[-3] if len(str(x).split(', '))>2 else '')
     df['city'] = df['address'].apply(lambda x: str(x).split(', ')[-1])
     df.loc[df.city=='', 'city'] = df['region']
     df.loc[df.city==df.region, 'region'] = df['landmark']
+
     df['parking_places'] = df['Parking'].apply(lambda x: int(str(x).split(' ')[0]) if str(x)!='nan' else 0)
     df['garage_places'] = df['Garaža'].apply(lambda x: int(str(x).split(' ')[0]) if str(x)!='nan' else 0)
     df.loc[df['garage_places']>20, 'garage_places'] = 1
