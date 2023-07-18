@@ -18,7 +18,8 @@ def train(path):
     df = raw[['area', 'rooms', 'floor_number', 'parking_places', 'garage_places',
               'price', 'city', 'region', 'landmark',
               'Tip', 'Lift', 'Godina izgradnje', 'street', 'link', 'Stanje',
-              'Uknjiženost', 'Grejanje', 'Infrastruktura', 'floors', 'Nameštenost']].drop_duplicates().copy()
+              'Uknjiženost', 'Grejanje', 'Infrastruktura', 'floors', 'Nameštenost',
+              'date_update']].drop_duplicates().copy()
     df['ppm'] = df['price'] / df['area']
     df = df[df.area.between(20, 200)]
     df['target'] = np.log1p(df['price'] / df['area'])
@@ -35,6 +36,7 @@ def train(path):
     model_cols.remove('link')
     model_cols.remove('ppm')
     model_cols.remove('Godina izgradnje')
+    model_cols.remove('date_update')
 
     X_train, X_test, y_train, y_test = train_test_split(df[model_cols], df['target'], test_size = 0.33, random_state = 42)
 
@@ -54,6 +56,8 @@ def train(path):
 
     df['pred_ppm'] = np.expm1(reg.predict(df[model_cols]))
     df_nonencoded['pred_ppm'] = df['pred_ppm']
+    df_nonencoded['pred_price'] = df_nonencoded['pred_ppm'] * df_nonencoded['area']
+    df_nonencoded.to_parquet(path+'/valuated.parquet')
     df['err'] = (df.pred_ppm-df.ppm)/df.ppm
     df=df.sort_values(by='err')
     pd.set_option('display.max_colwidth', None)
@@ -78,6 +82,9 @@ def features_encode(df_):
     df['Tip'] = df['Tip'].replace({'nan': '-'}).fillna('-').apply(lambda x: x.strip())
     df['Lift'] = df['Lift'].replace({'nan': '-'}).fillna('-').apply(lambda x: x.strip().title())
     df['street'] = df['street'].replace({'nan': '-'}).fillna('-').apply(lambda x: x.strip().title())
+
+    df['trend'] = (df['date_update'] - pd.to_datetime('2022-06-01')).apply(lambda x: x.days)
+    df['trend_month'] = df['trend']//30
 
     df['decade'] = df['Godina izgradnje'].apply(lambda x: int(x//10)*10 if not pd.isna(x) else 0)
     df['city_region'] = df.city + '_' + df.region
@@ -113,6 +120,7 @@ def features_encode(df_):
     df = pd.get_dummies(data=df, columns=['region_parking'])
     df = pd.get_dummies(data=df, columns=['region_garage'])
     df = pd.get_dummies(data=df, columns=['lift_floor'])
+    df = pd.get_dummies(data=df, columns=['trend_month'])
     return df
 
 

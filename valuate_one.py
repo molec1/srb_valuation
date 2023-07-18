@@ -1,21 +1,23 @@
 import pickle
 import plotly_express as px
+import datetime
 
 import numpy as np
 import pandas as pd
 import streamlit as st
 
 from model_train import features_encode
-
-path = './4zida/apartments/sale'
-df = st.cache_resource(pd.read_parquet)(path+"/prepared.parquet")
 @st.cache_resource
 def complex_func(f):
     return pickle.load(open(f, 'rb'))
-# Won't run again and again.
+
+path = './4zida/apartments/sale'
+df = st.cache_resource(pd.read_parquet)(path+"/prepared.parquet")
 reg = complex_func(path+'/model.sav')
-path = './4zida/apartments/rent'
-reg_rent = complex_func(path+'/model.sav')
+
+path_rent = './4zida/apartments/rent'
+df_rent = st.cache_resource(pd.read_parquet)(path_rent+"/prepared.parquet")
+reg_rent = complex_func(path_rent+'/model.sav')
 
 
 property = {}
@@ -43,6 +45,10 @@ property['Tip'] = st.selectbox('Type:', df['Tip'].sort_values().unique(), 6)
 property['Lift'] = st.selectbox('Lift:', df['Lift'].unique(), 1)
 property['Nameštenost'] = st.selectbox('Nameštenost:', df['Nameštenost'].unique())
 
+property['date_update'] = datetime.datetime.now()
+
+st.header('Valuation (please enter the area to get it)')
+
 # Filter dataframe
 if property['area']>0:
     property_df = pd.DataFrame(property, index=[1])
@@ -61,11 +67,13 @@ if property['area']>0:
     property_df['Rent price per m2'] = property_df['Rent price per m2'].round(3-len(str(int(property_df['Rent price per m2']))))
     property_df['Valuated rent price'] = property_df['Rent price per m2'] * property_df['area'].round()
     # write dataframe to screen
+
     st.write(property_df[['Price per m2', 'Valuated price', 'Rent price per m2', 'Valuated rent price']])
 
     df['Updated'] = df['date_update']
     df['Price per m2'] = df['ppm'].round(-1)
 
+    st.header('Some sale offers')
     st.write(df.loc[
                  (df['city'] == property['city']) &
                  (df['region'] == property['region']) &
@@ -75,6 +83,20 @@ if property['area']>0:
               'Grejanje', 'Stanje', 'parking_places', 'garage_places', 'link']
              ])
 
+    st.header('Some rent offers')
+    df_rent['Updated'] = df_rent['date_update']
+    df_rent['Rent price per m2'] = df_rent['ppm'].round(1)
+    st.write(df_rent.loc[
+                 (df_rent['city'] == property['city']) &
+                 (df_rent['region'] == property['region']) &
+                 (df_rent['landmark'] == property['landmark'])
+             ,
+             ['Updated', 'rooms', 'area', 'street', 'Rent price per m2', 'price',
+              'Grejanje', 'Stanje', 'parking_places', 'garage_places', 'link']
+             ])
+
+
+st.header('Some plots')
 df['%'] = df.ppm / df.ppm.mean() * 100
 def plot_str_graph(df, x):
     fig = px.scatter(df.groupby([x], as_index=False, dropna=False)['%'].mean(), x=x, y='%')

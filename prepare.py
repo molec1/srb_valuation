@@ -41,6 +41,8 @@ def prepare(path):
     df['Grejanje'] = df['Grejanje'].apply(lambda  x: str(x).strip())
     df['Lift'] = df['Lift'].apply(lambda  x: str(x).strip())
     df['Tip'] = df['Tip'].apply(lambda  x: str(x).strip())
+    df['Nameštenost'] = df['Nameštenost'].apply(lambda  x: str(x).strip())
+    df['Uknjiženost'] = df['Uknjiženost'].apply(lambda  x: str(x).strip())
     df['Režije'] = '-'
 
     df['lower_description'] = df['description'].fillna('').str.lower()
@@ -71,6 +73,11 @@ def prepare(path):
     df.loc[df['lower_description'].str.contains('bez lifta'), 'Lift'] = 'bez lifta'
 
     df.loc[df['lower_description'].str.contains('kompletno namešten'), 'Nameštenost'] = 'namešteno'
+
+    #df.loc[df['lower_description'].str.contains('nije uknjiženo'), 'Uknjiženost'] = 'nije uknjiženo'
+    print(df.loc[df['lower_description'].str.contains('uknjižen'), 'description'])
+    df.loc[df['lower_description'].str.contains('u procesu uknjiževanja'), 'Uknjiženost'] = 'u procesu uknjiževanja'
+    df.loc[df['lower_description'].str.contains('delimično uknjiženo'), 'Uknjiženost'] = 'delimično uknjiženo'
 
     del df['Tramvajske linije']
     del df['Trolejbuske linije']
