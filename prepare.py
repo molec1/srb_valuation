@@ -86,7 +86,7 @@ def prepare(path):
         df.loc[df['price']<500, 'price'] = df.loc[df['price']<500, 'price']*1000
     else:
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x*1000 if x<10 else x)
-    df = df[df.price.between(df.price.median()/5, df.price.median()*5)]
+    df = df[df.price.between(df.price.median()/4, df.price.median()*4)]
     df['ppm'] = df.price / df.area
     print(df.describe(include='all').T[['count', 'top']])
     print(df.columns)
