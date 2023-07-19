@@ -11,14 +11,17 @@ from model_train import features_encode
 def complex_func(f):
     return pickle.load(open(f, 'rb'))
 
+print(datetime.datetime.now(), 'start')
 path = './4zida/apartments/sale'
 df = st.cache_resource(pd.read_parquet)(path+"/valuated.parquet")
+print(datetime.datetime.now(), 'sale data is loaded')
 reg = complex_func(path+'/model.sav')
+print(datetime.datetime.now(), 'model is loaded')
 
 path_rent = './4zida/apartments/rent'
 df_rent = st.cache_resource(pd.read_parquet)(path_rent+"/valuated.parquet")
 reg_rent = complex_func(path_rent+'/model.sav')
-
+print(datetime.datetime.now(), 'rent data and model are loaded')
 
 property = {}
 property['city'] = st.selectbox('City:', df['city'].sort_values().unique(), 4)
@@ -51,24 +54,34 @@ st.header('Valuation (please enter the area to get it)')
 
 # Filter dataframe
 if property['area']>0:
+    print(datetime.datetime.now(), 'valuation started')
     property_df = pd.DataFrame(property, index=[1])
     property_enc = features_encode(property_df)
+    print(datetime.datetime.now(), 'encoding finished')
     model_cols = reg.feature_names_in_
     model_cols_rent = reg_rent.feature_names_in_
-    property_enc[list(set(model_cols)-set(property_enc.columns))] = 0
-    property_enc[list(set(model_cols_rent)-set(property_enc.columns))] = 0
+    add_sale_cols = list(set(model_cols)-set(property_enc.columns))
+    add_sale_df = pd.DataFrame({key: 0 for key in add_sale_cols}, index=[1])
+    property_enc = pd.concat([property_enc, add_sale_df], axis=1)
+    add_rent_cols = list(set(model_cols_rent)-set(property_enc.columns))
+    add_rent_df = pd.DataFrame({key: 0 for key in add_rent_cols}, index=[1])
+    property_enc = pd.concat([property_enc, add_rent_df], axis=1)
     property_enc = property_enc.copy()
+    print(datetime.datetime.now(), 'columns are added')
 
     property_df['Price per m2'] = np.expm1(reg.predict(property_enc[model_cols])).round(1)
-    property_df['Price per m2'] = property_df['Price per m2'].round(3-len(str(int(property_df['Price per m2']))))
+    property_df['Price per m2'] = property_df['Price per m2'].round(3-len(str(property_df['Price per m2'].apply(int))))
     property_df['Valuated price'] = property_df['Price per m2'] * property_df['area'].round()
+    print(datetime.datetime.now(), 'sale valuated')
 
     property_df['Rent price per m2'] = np.expm1(reg_rent.predict(property_enc[model_cols_rent])).round(1)
-    property_df['Rent price per m2'] = property_df['Rent price per m2'].round(3-len(str(int(property_df['Rent price per m2']))))
+    property_df['Rent price per m2'] = property_df['Rent price per m2'].round(3-len(str(property_df['Rent price per m2'].apply(int))))
     property_df['Valuated rent price'] = property_df['Rent price per m2'] * property_df['area'].round()
+    print(datetime.datetime.now(), 'rent valuated')
     # write dataframe to screen
 
     st.write(property_df[['Price per m2', 'Valuated price', 'Rent price per m2', 'Valuated rent price']])
+    print(datetime.datetime.now(), 'valuation finished')
 
     df['Updated'] = df['date_update']
     df['Price per m2'] = df['ppm'].round(-1)
@@ -94,6 +107,7 @@ if property['area']>0:
              ['Updated', 'rooms', 'area', 'street', 'Rent price per m2', 'price',
               'Grejanje', 'Stanje', 'parking_places', 'garage_places', 'link']
              ])
+    print(datetime.datetime.now(), 'dfs showed')
 
 
 st.header('Some plots')
@@ -106,3 +120,6 @@ def plot_str_graph(df, x):
 for x in ['city', 'date_update', 'rooms', 'Grejanje', 'Stanje', 'floor_number', 'Lift', 'Tip',
           'Uknjiženost', 'parking_places', 'garage_places', 'Godina izgradnje']:
     plot_str_graph(df, x)
+
+print(datetime.datetime.now(), 'finished')
+print('----------------------------------------------------------')
