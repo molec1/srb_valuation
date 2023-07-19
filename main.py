@@ -27,8 +27,9 @@ def get_links(path, link, pattern):
             file.close()
             time.sleep(1)
         else:
-            print('no new links')
-            #break
+            #print('no new links')
+            if i>10:
+                break
 
 
 def seen_links(path):
@@ -98,20 +99,27 @@ if __name__ == '__main__':
     #rent
     #get links
     path = '4zida/apartments/rent'
-    links = ['https://www.4zida.rs/izdavanje-stanova?skuplje_od=100eur&jeftinije_od=300&strana=',
-             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=300eur&jeftinije_od=400&strana=',
-             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=400eur&jeftinije_od=500&strana=',
-             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=500eur&jeftinije_od=600&strana=',
-             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=600eur&jeftinije_od=700&strana=',
-             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=700eur&jeftinije_od=800&strana=',
-             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=800eur&jeftinije_od=1000&strana=',
-             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=1000eur&jeftinije_od=1500&strana=',
-             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=1500eur&jeftinije_od=10000&strana=',
+    links = ['https://www.4zida.rs/izdavanje-stanova?skuplje_od=100eur&jeftinije_od=200eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=200eur&jeftinije_od=300eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=300eur&jeftinije_od=350eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=350eur&jeftinije_od=400eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=400eur&jeftinije_od=450eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=450eur&jeftinije_od=500eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=500eur&jeftinije_od=550eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=550eur&jeftinije_od=600eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=600eur&jeftinije_od=650eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=650eur&jeftinije_od=700eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=700eur&jeftinije_od=750eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=750eur&jeftinije_od=800eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=800eur&jeftinije_od=900eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=900eur&jeftinije_od=1000eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=1000eur&jeftinije_od=1500eur&strana=',
+             'https://www.4zida.rs/izdavanje-stanova?skuplje_od=1500eur&jeftinije_od=10000eur&strana=',
              ]
     link = 'https://www.4zida.rs/izdavanje-stanova?jeftinije_od=10000eur&strana='
     pattern = r"https:\/\/www.4zida.rs\/izdavanje-stanova\/[^/]+\/[^/]+\/[^/\"]+"
     for link in links:
-        print(1)#get_links(path, link, pattern)
+        get_links(path, link, pattern)
     #get pages
     get_pages(path)
 
@@ -147,7 +155,7 @@ if __name__ == '__main__':
     link = 'https://www.4zida.rs/prodaja-stanova?skuplje_od=10000eur&strana='
     pattern = r"https:\/\/www.4zida.rs\/prodaja-stanova\/[^/]+\/[^/]+\/[^/\"]+"
     for link in links:
-        print(1)#get_links(path, link, pattern)
+        get_links(path, link, pattern)
     #get pages
     get_pages(path)
 

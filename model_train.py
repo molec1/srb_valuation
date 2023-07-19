@@ -37,6 +37,10 @@ def train(path):
     model_cols.remove('ppm')
     model_cols.remove('Godina izgradnje')
     model_cols.remove('date_update')
+    for m in model_cols:
+        if len(df[df[m]!=0])<5:
+            #print(m)
+            model_cols.remove(m)
 
     X_train, X_test, y_train, y_test = train_test_split(df[model_cols], df['target'], test_size = 0.33, random_state = 42)
 

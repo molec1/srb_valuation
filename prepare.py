@@ -41,6 +41,10 @@ def prepare(path):
     df['Grejanje'] = df['Grejanje'].apply(lambda  x: str(x).strip())
     df['Lift'] = df['Lift'].apply(lambda  x: str(x).strip())
     df['Tip'] = df['Tip'].apply(lambda  x: str(x).strip())
+    df['street'] = df['street'].apply(lambda  x: str(x).strip().title())
+    df['Infrastruktura'] = df['Infrastruktura'].apply(lambda  x: str(x).strip().title())
+    df['house_number'] = df['street'].apply(lambda  x: x.split(' ')[-1] if x.split(' ')[-1][0].isnumeric() else '')
+    df['street'] = df['street'].apply(lambda  x: ' '.join(x.split(' ')[:-1]) if x.split(' ')[-1][0].isnumeric() else x)
     df['Nameštenost'] = df['Nameštenost'].apply(lambda  x: str(x).strip())
     df['Uknjiženost'] = df['Uknjiženost'].apply(lambda  x: str(x).strip())
     df['Režije'] = '-'
@@ -97,6 +101,7 @@ def prepare(path):
     df['ppm'] = df.price / df.area
     print(df.describe(include='all').T[['count', 'top']])
     print(df.columns)
+    df = df.sort_values('date_update').drop_duplicates(subset=['link'], keep='last')
     df.to_parquet(path+'/prepared.parquet')
 
 

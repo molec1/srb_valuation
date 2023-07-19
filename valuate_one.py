@@ -12,16 +12,16 @@ def complex_func(f):
     return pickle.load(open(f, 'rb'))
 
 path = './4zida/apartments/sale'
-df = st.cache_resource(pd.read_parquet)(path+"/prepared.parquet")
+df = st.cache_resource(pd.read_parquet)(path+"/valuated.parquet")
 reg = complex_func(path+'/model.sav')
 
 path_rent = './4zida/apartments/rent'
-df_rent = st.cache_resource(pd.read_parquet)(path_rent+"/prepared.parquet")
+df_rent = st.cache_resource(pd.read_parquet)(path_rent+"/valuated.parquet")
 reg_rent = complex_func(path_rent+'/model.sav')
 
 
 property = {}
-property['city'] = st.selectbox('City:', df['city'].sort_values().unique(), 3)
+property['city'] = st.selectbox('City:', df['city'].sort_values().unique(), 4)
 property['region'] = st.selectbox('Region:', df.loc[df['city'] == property['city'], 'region'].sort_values().unique())
 property['landmark'] = st.selectbox('Landmark:', df.loc[(df['city'] == property['city'])&
                                                         (df['region'] == property['region']), \
@@ -40,10 +40,10 @@ property['garage_places'] = st.number_input('Garage places:', 0, 5)
 property['Stanje'] = st.selectbox('Condition:', df['Stanje'].sort_values().unique(), 2)
 property['Uknjiženost'] = st.selectbox('Registered:', df['Uknjiženost'].unique())
 property['Grejanje'] = st.selectbox('Heating:', df['Grejanje'].sort_values().unique(), 1)
-property['Infrastruktura'] = st.selectbox('Additional:', df['Infrastruktura'].unique())
+property['Infrastruktura'] = st.selectbox('Additional:', ['-']+list(df['Infrastruktura'].sort_values().unique()))
 property['Tip'] = st.selectbox('Type:', df['Tip'].sort_values().unique(), 6)
-property['Lift'] = st.selectbox('Lift:', df['Lift'].unique(), 1)
-property['Nameštenost'] = st.selectbox('Nameštenost:', df['Nameštenost'].unique())
+property['Lift'] = st.selectbox('Lift:', df['Lift'].sort_values().unique(), 1)
+property['Nameštenost'] = st.selectbox('Nameštenost:', df['Nameštenost'].sort_values().unique())
 
 property['date_update'] = datetime.datetime.now()
 
