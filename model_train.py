@@ -37,6 +37,7 @@ def train(path):
     model_cols.remove('ppm')
     model_cols.remove('Godina izgradnje')
     model_cols.remove('date_update')
+    model_cols.remove('Infrastruktura')
     for m in model_cols:
         if len(df[df[m]!=0])<5:
             #print(m)
@@ -100,6 +101,17 @@ def features_encode(df_):
     df['floor_number'] = df['floor_number'].fillna(0)
     df['top_floor'] = ((df['floors'] - df['floor_number'])<1).apply(lambda x: 1 if x else 0)
 
+    infr_options = df['Infrastruktura'].unique()
+    infr_options = [x.split(', ') for x in infr_options]
+    infr_options = [j for i in infr_options for j in i]
+    infr_options = ['infr_'+x for x in infr_options]
+
+    df['infr_arr'] = df['Infrastruktura'].apply(lambda x: x.split(', '))
+    df[infr_options] = 0
+    for infr in infr_options:
+        df.loc[df['infr_arr'].apply(lambda x: infr[5:] in x), infr] = 1
+    del df['infr_arr']
+
     df['region_parking'] = df['city_region']+'_has_parking'
     df.loc[df['parking_places'].fillna(0)==0, 'region_parking'] = 'no_parking'
     df['region_garage'] = df['city_region'] + '_has_garage'
@@ -115,7 +127,7 @@ def features_encode(df_):
     df = pd.get_dummies(data=df, columns=['Stanje'])
     df = pd.get_dummies(data=df, columns=['Uknjiženost'])
     df = pd.get_dummies(data=df, columns=['Grejanje'])
-    df = pd.get_dummies(data=df, columns=['Infrastruktura'])
+    #df = pd.get_dummies(data=df, columns=['Infrastruktura'])
     df = pd.get_dummies(data=df, columns=['Nameštenost'])
     df = pd.get_dummies(data=df, columns=['city'])
     df = pd.get_dummies(data=df, columns=['city_region'])

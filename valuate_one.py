@@ -69,13 +69,11 @@ if property['area']>0:
     property_enc = property_enc.copy()
     print(datetime.datetime.now(), 'columns are added')
 
-    property_df['Price per m2'] = np.expm1(reg.predict(property_enc[model_cols])).round(1)
-    property_df['Price per m2'] = property_df['Price per m2'].round(3-len(str(property_df['Price per m2'].apply(int))))
+    property_df['Price per m2'] = np.expm1(reg.predict(property_enc[model_cols])).round(-2)
     property_df['Valuated price'] = property_df['Price per m2'] * property_df['area'].round()
     print(datetime.datetime.now(), 'sale valuated')
 
     property_df['Rent price per m2'] = np.expm1(reg_rent.predict(property_enc[model_cols_rent])).round(1)
-    property_df['Rent price per m2'] = property_df['Rent price per m2'].round(3-len(str(property_df['Rent price per m2'].apply(int))))
     property_df['Valuated rent price'] = property_df['Rent price per m2'] * property_df['area'].round()
     print(datetime.datetime.now(), 'rent valuated')
     # write dataframe to screen
