@@ -16,6 +16,8 @@ def get_links(path, link, pattern):
         p = page.content
         #get all links to offers
         links = re.findall(pattern, str(p))
+        if len(links)==0:
+            break
         links = [x for x in links if x not in old_links]
         links = [x for x in links if '"' not in x]
         print(links)
@@ -70,10 +72,14 @@ def get_pages(path):
             for item in items:
                 ret[item[0]] = item[1]
             price = re.findall(r"class=\"label\">Cena:<\/div><div _ngcontent-sc\d+=\"\" class=\"value\"><strong _ngcontent.sc\d+=\"\">([\d\.]+)", p)
-            ret['price'] = price[0]
+            if len(price)>0:
+                ret['price'] = price[0]
             address = re.findall(r"<app-place-info _ngcontent-sc\d+=\"\" _nghost-sc\d+=\"\"><div _ngcontent-sc\d+=\"\" class=\"flex flex-col\"><strong _ngcontent-sc\d+=\"\" class=\"font-semibold\">(.+)<\/strong><span _ngcontent-sc\d+=\"\">(.+)<\/span><\/div><\/app-place-info>", p)
-            ret['street'] = address[0][0]
-            ret['address'] = address[0][1]
+            if len(address)>0:
+                if len(address[0]) > 0:
+                    ret['street'] = address[0][0]
+                if len(address[0]) > 1:
+                    ret['address'] = address[0][1]
             description = re.findall(r"class=\"ed-description collapsed-description ng-star-inserted\">(.+)<\/pre>", p)
             if len(description)>0:
                 ret['description'] = description[0]
@@ -81,15 +87,14 @@ def get_pages(path):
             ret['title'] = title[0]
             ret['end_date'] = datetime.datetime.now().date()
             scraped.append(ret)
-        except:
-            print('err')
+        except Exception as e:
+            print('err', repr(e))
         time.sleep(1.5)
 
     df = pd.DataFrame.from_dict(scraped)
     scraped_file_name = path+'/scraped/scraped_'+str(datetime.datetime.now().date())+'.csv'
     if os.path.exists(scraped_file_name):
-        p = pd.read_csv(scraped_file_name)
-        df = pd.concat([p, df])
+        scraped_file_name = path+'/scraped/scraped_'+str(datetime.datetime.now().date())+'_'+str(datetime.datetime.now().time())+'.csv'
     df.to_csv(scraped_file_name)
 
 
@@ -154,6 +159,41 @@ if __name__ == '__main__':
              ]
     link = 'https://www.4zida.rs/prodaja-stanova?skuplje_od=10000eur&strana='
     pattern = r"https:\/\/www.4zida.rs\/prodaja-stanova\/[^/]+\/[^/]+\/[^/\"]+"
+    for link in links:
+        get_links(path, link, pattern)
+    #get pages
+    get_pages(path)
+
+    #houses
+    #get links
+    path = '4zida/houses/sale'
+    links = ['https://www.4zida.rs/prodaja-kuca?skuplje_od=10000eur&jeftinije_od=50000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=50000eur&jeftinije_od=60000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=60000eur&jeftinije_od=65000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=65000eur&jeftinije_od=70000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=70000eur&jeftinije_od=75000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=75000eur&jeftinije_od=80000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=80000eur&jeftinije_od=85000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=85000eur&jeftinije_od=90000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=90000eur&jeftinije_od=95000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=95000eur&jeftinije_od=100000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=100000eur&jeftinije_od=105000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=105000eur&jeftinije_od=110000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=110000eur&jeftinije_od=115000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=115000eur&jeftinije_od=120000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=120000eur&jeftinije_od=125000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=125000eur&jeftinije_od=130000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=130000eur&jeftinije_od=140000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=140000eur&jeftinije_od=150000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=150000eur&jeftinije_od=160000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=160000eur&jeftinije_od=180000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=180000eur&jeftinije_od=200000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=200000eur&jeftinije_od=240000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=240000eur&jeftinije_od=300000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=300000eur&jeftinije_od=500000eur&strana=',
+             'https://www.4zida.rs/prodaja-kuca?skuplje_od=500000eur&strana=',
+             ]
+    pattern = r"https:\/\/www.4zida.rs\/prodaja-kuca\/[^/]+\/[^/]+\/[^/\"]+"
     for link in links:
         get_links(path, link, pattern)
     #get pages

@@ -19,7 +19,7 @@ def train(path):
               'price', 'city', 'region', 'landmark',
               'Tip', 'Lift', 'Godina izgradnje', 'street', 'link', 'Stanje',
               'Uknjiženost', 'Grejanje', 'Infrastruktura', 'floors', 'Nameštenost',
-              'date_update']].drop_duplicates().copy()
+              'date_update', 'land_area']].drop_duplicates().copy()
     df['ppm'] = df['price'] / df['area']
     df = df[df.area.between(20, 200)]
     df['target'] = np.log1p(df['price'] / df['area'])
@@ -119,6 +119,12 @@ def features_encode(df_):
 
     df['lift_floor'] = df['Lift'].fillna('no_info').apply(lambda x: 'has_lift_' if 'Ima' in x else 'no_lift_') + df['floor_number'].apply(str)
 
+    if len(df[df.land_area>1])>0:
+        df = pd.get_dummies(data=df, columns=['city'], prefix='dummy_city_land')
+        df['log_land_area'] = np.log1p(df['land_area'])
+        dummy_cols = [x for x in df.columns if x.sartswith('dummy_city_land')]
+        df[dummy_cols] = df[dummy_cols]*df['log_land_area']
+
     df = pd.get_dummies(data=df, columns=['rooms'])
     df = pd.get_dummies(data=df, columns=['floor_number'])
     df = pd.get_dummies(data=df, columns=['decade'])
@@ -146,5 +152,7 @@ if __name__ == '__main__':
     train('4zida/apartments/sale')
     #rent
     train('4zida/apartments/rent')
+    #sale
+    train('4zida/houses/sale')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
