@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+import re
 from datetime import datetime, timedelta
 
 def prepare(path):
@@ -13,14 +14,24 @@ def prepare(path):
     df['area'] = df['Površina'].apply(lambda x: int(str(x).split(' ')[0]))
     df['rooms'] = df['title'].apply(lambda x: x.split(' ')[0])
     df['bedrooms'] = df['Broj soba'].apply(lambda x: float(str(x).split(' ')[0]) if str(x)[0]!='n' else 0)
+    if 'houses' in path:
+        df['floors'] = df['rooms']
+        df['rooms'] = df['bedrooms']
 
     if 'Spratnost' not in df.columns:
         df['Spratnost'] = np.nan
     underground_markers = ['potkrovlje', 'nan', 'visoko prizemlje', 'suteren', 'prizemlje', 'nisko prizemlje', 'podrum']
-    df['floor_number'] = df['Spratnost'].apply(lambda x: str(x).replace(' sprat ', '').replace('.', '').split('/')[0] if str(x).strip() not in underground_markers else 0 if str(x)=='visoko prizemlje' else -1)
-    df['floor_number'] = df['floor_number'].apply(lambda x: 0 if x in underground_markers else int(x))
+    df['floor_number'] = df['Spratnost'].apply(lambda x: str(x).replace(' sprat ', '').replace('.', '').split('/')[0])
+    df['floors'] =       df['Spratnost'].apply(lambda x: str(x).strip().split('/')[1].replace(' spratova', '').replace(' sprata', '').replace(' sprat', '') if len(str(x).strip().split('/'))>1 else '')
+    df.loc[df['floor_number']=='potkrovlje', 'floor_number'] = df.loc[df['floor_number']=='potkrovlje', 'floors']
+    df['floor_number'] = df['floor_number'].apply(lambda x: x if str(x).strip() not in underground_markers else 0 if str(x)=='visoko prizemlje' else -1)
+    df['floor_number'] = df['floor_number'].apply(lambda x: -1 if x in underground_markers+[''] else int(x))
     df['floors'] = df['Spratnost'].apply(lambda x: str(x).strip().split('/')[1].replace(' spratova', '').replace(' sprata', '').replace(' sprat', '') if len(str(x).strip().split('/'))>1 else '')
     df['floors'] = df['floors'].apply(lambda x: int(x) if len(x)>1 else 0)
+    df.loc[df.link.str.contains('jednoetazna'), 'floors'] = 1
+    df.loc[df.link.str.contains('dvoetazna'), 'floors'] = 2
+    df.loc[df.link.str.contains('troeatazna'), 'floors'] = 3
+    df.loc[df.link.str.contains('cetveroetazna'), 'floors'] = 4
 
     df['landmark'] = df['address'].apply(lambda x: str(x).split(', ')[0])
     df = df.loc[df['address'].apply(lambda x: len(str(x).split(', ')))>2]
@@ -54,12 +65,20 @@ def prepare(path):
     df['Nameštenost'] = df['Nameštenost'].apply(lambda  x: str(x).strip())
     df['Uknjiženost'] = df['Uknjiženost'].apply(lambda  x: str(x).strip())
     df['Režije'] = '-'
-    if 'plac' in df.columns:
-        df['land_area'] = df['plac'].apply(lambda x: 4047*float(str(x).split('a ')[0]))
-    else:
-        df['land_area'] = 0
 
     df['lower_description'] = df['description'].fillna('').str.lower()
+
+    if 'Plac' in df.columns:
+        def find_plac(x):
+            ret = re.findall(r" ([\d]+[\.\,]?[\d]+)[ ]?ar", x)
+            if len(ret)>0:
+                return ret[0].replace(',','.')
+            else:
+                return np.nan
+        df.loc[pd.isna(df['Plac']), 'Plac'] = df.loc[pd.isna(df['Plac']), 'lower_description'].apply(find_plac)
+        df['land_area'] = df['Plac'].apply(lambda x: 100*float(str(x).split('a ')[0]))
+    else:
+        df['land_area'] = 0
 
     df.loc[df['lower_description'].str.contains('lux stan'), 'Stanje'] = 'luksuzno'
     df.loc[df['lower_description'].str.contains('luksuzan'), 'Stanje'] = 'luksuzno'
@@ -71,6 +90,9 @@ def prepare(path):
     df.loc[df['lower_description'].str.contains('nov stan'), 'Stanje'] = 'novo'
     df.loc[df['lower_description'].str.contains('novoizgra'), 'Stanje'] = 'novo'
     df.loc[df['lower_description'].str.contains('u izvornom stanju'), 'Stanje'] = 'potrebno renoviranje'
+    df.loc[df['lower_description'].str.contains(' renoviran'), 'Stanje'] = 'renovirano'
+    df.loc[df['lower_description'].str.contains('starija kuca'), 'Stanje'] = 'staro'
+    df.loc[df['lower_description'].str.contains('stara kuca'), 'Stanje'] = 'staro'
 
     df.loc[df['lower_description'].str.contains('stan u kući'), 'Tip'] = 'Stan u kući'
     df.loc[df['lower_description'].str.contains('dupleks'), 'Tip'] = 'Dupleks'
@@ -89,7 +111,6 @@ def prepare(path):
     df.loc[df['lower_description'].str.contains('kompletno namešten'), 'Nameštenost'] = 'namešteno'
 
     #df.loc[df['lower_description'].str.contains('nije uknjiženo'), 'Uknjiženost'] = 'nije uknjiženo'
-    print(df.loc[df['lower_description'].str.contains('uknjižen'), 'description'])
     df.loc[df['lower_description'].str.contains('u procesu uknjiževanja'), 'Uknjiženost'] = 'u procesu uknjiževanja'
     df.loc[df['lower_description'].str.contains('delimično uknjiženo'), 'Uknjiženost'] = 'delimično uknjiženo'
 
@@ -116,6 +137,7 @@ def prepare(path):
     df['ppm'] = df.price / df.area
     print(df.describe(include='all').T[['count', 'top']])
     print(df.columns)
+    print(len(df))
     df = df.sort_values('date_update').drop_duplicates(subset=['link'], keep='last')
     df.to_parquet(path+'/prepared.parquet')
 
@@ -123,12 +145,14 @@ def prepare(path):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     #sale
+
     path = '4zida/apartments/sale'
     prepare(path)
     #rent
     path = '4zida/apartments/rent'
     prepare(path)
     #sale
+
     path = '4zida/houses/sale'
     prepare(path)
 

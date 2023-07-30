@@ -21,9 +21,13 @@ def train(path):
               'Uknjiženost', 'Grejanje', 'Infrastruktura', 'floors', 'Nameštenost',
               'date_update', 'land_area']].drop_duplicates().copy()
     df['ppm'] = df['price'] / df['area']
-    df = df[df.area.between(20, 200)]
+    #print(df.area.describe(percentiles=[0.1,0.2,0.8,0.9]).T)
+    df = df[df.area.between(20, 300)]
     df['target'] = np.log1p(df['price'] / df['area'])
     print('len df:', len(df))
+    if len(df[df.land_area>1])>0:
+        df = df[(df.land_area>100)&(df.land_area<2_000)]
+        print('len df la shrink:', len(df))
     df_nonencoded = df.copy()
     df = features_encode(df)
     model_cols = list(df.columns)
@@ -45,6 +49,11 @@ def train(path):
 
     X_train, X_test, y_train, y_test = train_test_split(df[model_cols], df['target'], test_size = 0.33, random_state = 42)
 
+    n = len(X_train)
+    cnts = X_train.count().to_dict()
+    for c in cnts:
+        if cnts[c]<n:
+            print(c, cnts[c], n)
     reg = linear_model.Ridge(alpha=2, positive=True)
     reg.fit(X_train, y_train)
     #print(reg.intercept_)
@@ -59,17 +68,20 @@ def train(path):
 
     pickle.dump(reg, open(path+'/model.sav', 'wb'))
 
-    df['pred_ppm'] = np.expm1(reg.predict(df[model_cols]))
+    df['pred_lppm'] = reg.predict(df[model_cols])
+    df['pred_ppm'] = np.expm1(df['pred_lppm'])
     df_nonencoded['pred_ppm'] = df['pred_ppm']
     df_nonencoded['pred_price'] = df_nonencoded['pred_ppm'] * df_nonencoded['area']
     df_nonencoded.to_parquet(path+'/valuated.parquet')
-    df['err'] = (df.pred_ppm-df.ppm)/df.ppm
-    df=df.sort_values(by='err')
-    pd.set_option('display.max_colwidth', None)
-    #print(df.head(10)[['link', 'err']])
-    #print(df.head(10)[['price', 'area', 'ppm', 'pred_ppm', 'err']])
-    #print(df.tail(20)[['link', 'err']])
-    #print(df.tail(20)[['price', 'area', 'ppm', 'pred_ppm', 'err']])
+
+    df['abs_err'] = abs(df['pred_lppm']-df['target'])
+    #print(df['abs_err'].describe().T)
+    conf_reg = linear_model.Ridge(alpha=2)
+    conf_reg.fit(df[model_cols], df['abs_err'])
+    df['pred_abs_err'] = conf_reg.predict(df[model_cols])
+    #print(df['pred_abs_err'].describe().T)
+    pickle.dump(conf_reg, open(path+'/confidence_model.sav', 'wb'))
+
 
 
 def load_model(path):
@@ -104,6 +116,7 @@ def features_encode(df_):
     infr_options = df['Infrastruktura'].unique()
     infr_options = [x.split(', ') for x in infr_options]
     infr_options = [j for i in infr_options for j in i]
+    infr_options = list(set(infr_options))
     infr_options = ['infr_'+x for x in infr_options]
 
     df['infr_arr'] = df['Infrastruktura'].apply(lambda x: x.split(', '))
@@ -119,12 +132,6 @@ def features_encode(df_):
 
     df['lift_floor'] = df['Lift'].fillna('no_info').apply(lambda x: 'has_lift_' if 'Ima' in x else 'no_lift_') + df['floor_number'].apply(str)
 
-    if len(df[df.land_area>1])>0:
-        df = pd.get_dummies(data=df, columns=['city'], prefix='dummy_city_land')
-        df['log_land_area'] = np.log1p(df['land_area'])
-        dummy_cols = [x for x in df.columns if x.sartswith('dummy_city_land')]
-        df[dummy_cols] = df[dummy_cols]*df['log_land_area']
-
     df = pd.get_dummies(data=df, columns=['rooms'])
     df = pd.get_dummies(data=df, columns=['floor_number'])
     df = pd.get_dummies(data=df, columns=['decade'])
@@ -135,6 +142,8 @@ def features_encode(df_):
     df = pd.get_dummies(data=df, columns=['Grejanje'])
     #df = pd.get_dummies(data=df, columns=['Infrastruktura'])
     df = pd.get_dummies(data=df, columns=['Nameštenost'])
+    if len(df[df.land_area>1])>0:
+        df['city_house'] = df['city'].copy()
     df = pd.get_dummies(data=df, columns=['city'])
     df = pd.get_dummies(data=df, columns=['city_region'])
     df = pd.get_dummies(data=df, columns=['city_landmark'])
@@ -143,16 +152,25 @@ def features_encode(df_):
     df = pd.get_dummies(data=df, columns=['region_garage'])
     df = pd.get_dummies(data=df, columns=['lift_floor'])
     df = pd.get_dummies(data=df, columns=['trend_month'])
+
+    if len(df[df.land_area>1])>0:
+        df = pd.get_dummies(data=df, columns=['city_house'], prefix='dummy_city_house')
+        df['log_land_area'] = np.log1p(df['land_area'])
+        for c in [x for x in df.columns if x.startswith('city_')]:
+            df[c] = df[c] * df['log_land_area']
+        df = pd.get_dummies(data=df, columns=['floors'])
     return df
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+
     #sale
     train('4zida/apartments/sale')
     #rent
     train('4zida/apartments/rent')
     #sale
+
     train('4zida/houses/sale')
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
