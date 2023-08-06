@@ -38,7 +38,7 @@ property['street'] = st.selectbox('Street:', df.loc[(df['city'] == property['cit
 property['rooms'] = st.selectbox('Rooms:', df['rooms'].sort_values().unique())
 property['area'] = st.number_input('Area:', 0, 200)
 property['Godina izgradnje'] = st.number_input('Building year:', 1850, 2040, 2010, 5)
-property['floor_number'] = st.number_input('Floor:', 0, 20, 2)
+property['floor_number'] = st.number_input('Floor:', -1, 20, 2)
 property['floors'] = st.number_input('Total floors:', 1, 20, 5)
 property['parking_places'] = st.number_input('Parking places:', 0, 5)
 property['garage_places'] = st.number_input('Garage places:', 0, 5)
