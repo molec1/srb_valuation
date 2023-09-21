@@ -91,7 +91,7 @@ def get_pages(path):
             title = re.findall(r"<title>(.+)<\/title>", p)
             ret['title'] = title[0]
             ret['end_date'] = datetime.datetime.now().date()
-            print(ret)
+            # print(ret)
             scraped.append(ret)
         except Exception as e:
             print('err', repr(e))
@@ -111,7 +111,6 @@ if __name__ == '__main__':
     #get links
 
     path = '4zida/apartments/rent'
-    get_pages(path)
     links = ['https://www.4zida.rs/izdavanje-stanova?skuplje_od=100eur&jeftinije_od=200eur&strana=',
              'https://www.4zida.rs/izdavanje-stanova?skuplje_od=200eur&jeftinije_od=300eur&strana=',
              'https://www.4zida.rs/izdavanje-stanova?skuplje_od=300eur&jeftinije_od=350eur&strana=',
@@ -134,6 +133,7 @@ if __name__ == '__main__':
     for link in links:
         get_links(path, link, pattern)
     #get pages
+    get_pages(path)
 
     #sale
     #get links
