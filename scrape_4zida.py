@@ -4,6 +4,7 @@ import time
 import pandas as pd
 import datetime
 import os
+import html
 
 def get_links(path, link, pattern):
     old_links = seen_links(path)
@@ -65,20 +66,20 @@ def get_pages(path):
     links = links[:-1]
     print(len(links))
     scraped = []
-    for l in links[:1000]:
+    for l in links[:2000]:
         try:
             ret = {'link': l}
             print(l)
             page = requests.get(l)
-            p = page.content.decode('utf-8')
+            p = html.unescape(page.content.decode('utf-8'))
             # print(p)
-            items = re.findall(r"\"label\">([\w\s\d\\]+):<\/div><strong _ngcontent-sc\d+=\"\" class=\"value \w+-\w+ \w+-\w+\">([\w\d\s\\\/., \(\)]+)\s?", p)
+            items = re.findall(r"\"label\">([\w\s\d\\\&\#;]+):<\/div><strong _ngcontent-ng-c\d+ class=\"value \w+-\w+ \w+-\w+\">([\w\d\s\\\/., \(\)\&\#;]+)\s?", p)
             for item in items:
                 ret[item[0]] = item[1]
-            price = re.findall(r"class=\"label\">Cena:<\/div><div _ngcontent-sc\d+=\"\" class=\"value\"><strong _ngcontent.sc\d+=\"\">([\d\.]+)", p)
+            price = re.findall(r"class=\"label\">Cena:<\/div><div _ngcontent-ng-c\d+ class=\"value\"><strong _ngcontent-ng-c\d+>([\d\(.\d)?]+)", p)
             if len(price)>0:
                 ret['price'] = price[0]
-            address = re.findall(r"<app-place-info _ngcontent-sc\d+=\"\" _nghost-sc\d+=\"\"><div _ngcontent-sc\d+=\"\" class=\"flex flex-col\"><strong _ngcontent-sc\d+=\"\" class=\"font-semibold\">(.+)<\/strong><span _ngcontent-sc\d+=\"\">(.+)<\/span><\/div><\/app-place-info>", p)
+            address = re.findall(r"<app-place-info _ngcontent-ng-c\d+ _nghost-ng-c\d+><div _ngcontent-ng-c\d+ class=\"flex flex-col\"><strong _ngcontent-ng-c\d+ class=\"font-semibold\">(.+)<\/strong><span _ngcontent-ng-c\d+>(.+)<\/span><\/div><\/app-place-info>", p)
             if len(address)>0:
                 if len(address[0]) > 0:
                     ret['street'] = address[0][0]
@@ -90,6 +91,7 @@ def get_pages(path):
             title = re.findall(r"<title>(.+)<\/title>", p)
             ret['title'] = title[0]
             ret['end_date'] = datetime.datetime.now().date()
+            print(ret)
             scraped.append(ret)
         except Exception as e:
             print('err', repr(e))
@@ -109,6 +111,7 @@ if __name__ == '__main__':
     #get links
 
     path = '4zida/apartments/rent'
+    get_pages(path)
     links = ['https://www.4zida.rs/izdavanje-stanova?skuplje_od=100eur&jeftinije_od=200eur&strana=',
              'https://www.4zida.rs/izdavanje-stanova?skuplje_od=200eur&jeftinije_od=300eur&strana=',
              'https://www.4zida.rs/izdavanje-stanova?skuplje_od=300eur&jeftinije_od=350eur&strana=',
@@ -131,7 +134,6 @@ if __name__ == '__main__':
     for link in links:
         get_links(path, link, pattern)
     #get pages
-    get_pages(path)
 
     #sale
     #get links

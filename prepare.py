@@ -50,7 +50,7 @@ def prepare(path):
     df.loc[df['Oglas ažuriran'].apply(lambda x: str(x).split(' ')[2]).isin(['sat', 'sati', 'sata', 'minut', 'minuta']), 'delay_days'] = 0
     df.loc[df['Oglas ažuriran'].apply(lambda x: str(x).split(' ')[2]).isin(['mesec', 'meseca', 'meseci']), 'delay_days'] = \
         df.loc[df['Oglas ažuriran'].apply(lambda x: str(x).split(' ')[2]).isin(['mesec', 'meseca', 'meseci']), 'delay_days']*30
-    df['date_update'] = pd.to_datetime(df['end_date']) .dt.date - df['delay_days'].apply(lambda x: timedelta(days=x))
+    df['date_update'] = pd.to_datetime(df['end_date']) .dt.date - df['delay_days'].apply(lambda x: timedelta(days=x)).fillna(0)
     df['date_update'] = pd.to_datetime(df['date_update'])
     df['Stanje'] = df['Stanje'].apply(lambda  x: str(x).strip())
     df['Grejanje'] = df['Grejanje'].apply(lambda  x: str(x).strip())
@@ -139,6 +139,7 @@ def prepare(path):
     print(df.columns)
     print(len(df))
     df = df.sort_values('date_update').drop_duplicates(subset=['link'], keep='last')
+    print('last record', df.end_date.max())
     df.to_parquet(path+'/prepared.parquet')
 
 

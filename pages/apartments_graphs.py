@@ -36,6 +36,7 @@ property['Lift'] = st.selectbox('Lift:', ['-']+list(df['Lift'].sort_values().uni
 property['Nameštenost'] = st.selectbox('Nameštenost:', ['-']+list(df['Nameštenost'].sort_values().unique()))
 
 df['%'] = df.ppm / df.ppm.mean() * 100
+df_rent['%'] = df_rent.ppm / df_rent.ppm.mean() * 100
 
 temp_df = df.copy()
 for prop in property:
