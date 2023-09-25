@@ -40,7 +40,7 @@ def prepare(path):
     df.loc[df.city=='', 'city'] = df['region']
     df.loc[df.city==df.region, 'region'] = df['landmark']
 
-    df['parking_places'] = df['Parking'].apply(lambda x: int(str(x).split(' ')[0]) if str(x)!='nan' else 0)
+    df['parking_places'] = df['Parking'].apply(lambda x: int(str(x).split(' ')[0]) if (str(x)!='nan')&((str(x).startswith('1')) or (str(x).startswith('1')) or (str(x).startswith('3'))) else 0)
     df['garage_places'] = df['Garaža'].apply(lambda x: int(str(x).split(' ')[0]) if str(x)!='nan' else 0)
     df.loc[df['garage_places']>20, 'garage_places'] = 1
     df.loc[df['garage_places']>4, 'garage_places'] = 5
