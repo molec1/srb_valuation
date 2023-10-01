@@ -26,7 +26,7 @@ confidence_reg_rent = complex_func(path_rent+'/confidence_model.sav')
 print(datetime.datetime.now(), 'rent data and model are loaded')
 
 property = {}
-property['city'] = st.selectbox('City:', df['city'].sort_values().unique(), 8)
+property['city'] = st.selectbox('City:', df['city'].sort_values().unique(), 9)
 property['region'] = st.selectbox('Region:', df.loc[df['city'] == property['city'], 'region'].sort_values().unique())
 property['landmark'] = st.selectbox('Landmark:', df.loc[(df['city'] == property['city'])&
                                                         (df['region'] == property['region']), \
@@ -119,6 +119,32 @@ if property['area']>0:
               'Grejanje', 'Stanje', 'parking_places', 'garage_places', 'link']
              ])
     print(datetime.datetime.now(), 'dfs showed')
+    
+    st.header('Price evolution')
+    min_date = datetime.datetime(2022,9,1)
+    max_date = datetime.datetime.now()
+    
+    dates = [min_date + (max_date-min_date)/10*x for x in range(11)]
+    df_dates = pd.DataFrame({'date_update': dates})
+    trend_df = property_df.drop(columns=['date_update']).merge(df_dates, how='cross')
+    trend_df_enc = features_encode(trend_df)
+    model_cols = reg.feature_names_in_
+    model_cols_rent = reg_rent.feature_names_in_
+    add_sale_cols = list(set(model_cols)-set(trend_df_enc.columns))
+    add_sale_df = pd.DataFrame({key: 0 for key in add_sale_cols}, index=[1])
+    trend_df_enc = pd.concat([trend_df_enc, add_sale_df], axis=1)
+    add_rent_cols = list(set(model_cols_rent)-set(trend_df_enc.columns))
+    add_rent_df = pd.DataFrame({key: 0 for key in add_rent_cols}, index=[1])
+    trend_df_enc = pd.concat([trend_df_enc, add_rent_df], axis=1)
+    trend_df_enc = trend_df_enc.fillna(0).copy()
+    trend_df['Sale price'] = (np.expm1(reg.predict(trend_df_enc[model_cols]))*trend_df['area']).round(-3)
+    trend_df['Rent price'] = (np.expm1(reg_rent.predict(trend_df_enc[model_cols_rent]))*trend_df['area']).round(0)
+    fig = px.scatter(trend_df.groupby(['date_update'], as_index=False, dropna=False)['Sale price'].mean(), x='date_update', y='Sale price')
+    # Plot!
+    st.plotly_chart(fig)
+    fig = px.scatter(trend_df.groupby(['date_update'], as_index=False, dropna=False)['Rent price'].mean(), x='date_update', y='Rent price')
+    # Plot!
+    st.plotly_chart(fig)
 
 
 print(datetime.datetime.now(), 'finished')

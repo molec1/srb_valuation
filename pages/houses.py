@@ -14,8 +14,10 @@ def complex_func(f):
 print(datetime.datetime.now(), 'start')
 path = '4zida/houses/sale'
 df = st.cache_resource(pd.read_parquet)(path+"/valuated.parquet")
+df['Plac'] = df['land_area']/100
 print(datetime.datetime.now(), 'sale data is loaded')
 reg = complex_func(path+'/model.sav')
+conf_reg = complex_func(path+'/confidence_model.sav')
 print(datetime.datetime.now(), 'model is loaded')
 
 property = {}
@@ -32,7 +34,7 @@ property['rooms'] = st.selectbox('Rooms:', df['rooms'].sort_values().unique())
 property['area'] = st.number_input('Area:', 0, 200)
 property['Godina izgradnje'] = st.number_input('Building year:', 1850, 2040, 2010, 5)
 property['floor_number'] = 0
-property['Plac'] = st.number_input('Plac, ar:', 0, 20)
+property['Plac'] = st.number_input('Plac, a:', 0, 20)
 property['land_area'] = property['Plac']*100
 property['floors'] = st.number_input('Total floors:', 1, 5, 2)
 property['parking_places'] = st.number_input('Parking places:', 0, 5)
@@ -69,11 +71,14 @@ if property['area']>0:
     print(datetime.datetime.now(), 'columns are added')
 
     property_df['Price per m2'] = np.expm1(reg.predict(property_enc[model_cols])).round(-1)
+    property_df['conf_coeff'] = np.exp(conf_reg.predict(property_enc[model_cols]))
     property_df['Valuated price'] = property_df['Price per m2'] * property_df['area'].round()
+    property_df['Low'] = (property_df['Valuated price']/property_df['conf_coeff'] ).round(-2)
+    property_df['High'] = (property_df['Valuated price']*property_df['conf_coeff'] ).round(-2)
     print(datetime.datetime.now(), 'sale valuated')
     # write dataframe to screen
 
-    st.write(property_df[['Price per m2', 'Valuated price']])
+    st.write(property_df[['Price per m2', 'Valuated price', 'Low', 'High']])
     print(datetime.datetime.now(), 'valuation finished')
 
     df['Updated'] = df['date_update']
@@ -85,11 +90,29 @@ if property['area']>0:
                  (df['region'] == property['region']) &
                  (df['landmark'] == property['landmark'])
              ,
-             ['Updated', 'rooms', 'area', 'street', 'Price per m2', 'price',
-              'Grejanje', 'Stanje', 'parking_places', 'garage_places', 'link']
+             ['Updated', 'rooms', 'area', 'Plac', 'street', 'Price per m2', 'price',
+              'Grejanje', 'Stanje', 'garage_places', 'link']
              ])
 
     print(datetime.datetime.now(), 'dfs showed')
+    
+    st.header('Price evolution')
+    min_date = datetime.datetime(2022,9,1)
+    max_date = datetime.datetime.now()
+    
+    dates = [min_date + (max_date-min_date)/10*x for x in range(11)]
+    df_dates = pd.DataFrame({'date_update': dates})
+    trend_df = property_df.drop(columns=['date_update']).merge(df_dates, how='cross')
+    trend_df_enc = features_encode(trend_df)
+    model_cols = reg.feature_names_in_
+    add_sale_cols = list(set(model_cols)-set(trend_df_enc.columns))
+    add_sale_df = pd.DataFrame({key: 0 for key in add_sale_cols}, index=[1])
+    trend_df_enc = pd.concat([trend_df_enc, add_sale_df], axis=1)
+    trend_df_enc = trend_df_enc.fillna(0).copy()
+    trend_df['Sale price'] = (np.expm1(reg.predict(trend_df_enc[model_cols]))*trend_df['area']).round(-3)
+    fig = px.scatter(trend_df.groupby(['date_update'], as_index=False, dropna=False)['Sale price'].mean(), x='date_update', y='Sale price')
+    # Plot!
+    st.plotly_chart(fig)
 
 
 st.header('Some plots')
@@ -99,8 +122,8 @@ def plot_str_graph(df, x):
     # Plot!
     st.plotly_chart(fig)
 
-for x in ['city', 'date_update', 'rooms', 'Grejanje', 'Stanje', 'floor_number', 'Lift', 'Tip',
-          'Uknjiženost', 'parking_places', 'garage_places', 'Godina izgradnje', 'area', 'land_area']:
+for x in ['city', 'date_update', 'rooms', 'area', 'Plac', 'Grejanje', 'Stanje', 'floor_number', 
+          'Lift', 'Tip', 'Uknjiženost', 'parking_places', 'garage_places', 'Godina izgradnje']:
     plot_str_graph(df, x)
 
 print(datetime.datetime.now(), 'finished')

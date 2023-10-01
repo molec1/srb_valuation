@@ -4,16 +4,24 @@ import numpy as np
 import re
 from datetime import datetime, timedelta
 
+from model_train import basic_cols
+
 def prepare(path):
     t = []
     for f in os.listdir(path+'/scraped'):
         t.append(pd.read_csv(path+'/scraped/' + f))
     df = pd.concat(t)
     del t
+    
+    for b in basic_cols:
+        if b not in df.columns:
+            df[b] = '-'
+    
     df = df[pd.isna(df['Površina'])==False]
-    df['area'] = df['Površina'].apply(lambda x: int(str(x).split(' ')[0]))
+    df['area'] = df['Površina'].apply(lambda x: float(str(x).split(' ')[0]))
     df['rooms'] = df['title'].apply(lambda x: x.split(' ')[0])
-    df['bedrooms'] = df['Broj soba'].apply(lambda x: float(str(x).split(' ')[0]) if str(x)[0]!='n' else 0)
+    if 'Broj soba' in df.columns:
+        df['bedrooms'] = df['Broj soba'].apply(lambda x: float(str(x).split(' ')[0]) if str(x)[0]!='n' else 0)
     if 'houses' in path:
         df['floors'] = df['rooms']
         df['rooms'] = df['bedrooms']
@@ -40,10 +48,12 @@ def prepare(path):
     df.loc[df.city=='', 'city'] = df['region']
     df.loc[df.city==df.region, 'region'] = df['landmark']
 
-    df['parking_places'] = df['Parking'].apply(lambda x: int(str(x).split(' ')[0]) if (str(x)!='nan')&((str(x).startswith('1')) or (str(x).startswith('1')) or (str(x).startswith('3'))) else 0)
-    df['garage_places'] = df['Garaža'].apply(lambda x: int(str(x).split(' ')[0]) if str(x)!='nan' else 0)
-    df.loc[df['garage_places']>20, 'garage_places'] = 1
-    df.loc[df['garage_places']>4, 'garage_places'] = 5
+    if 'Parking' in df.columns:
+        df['parking_places'] = df['Parking'].apply(lambda x: int(str(x).split(' ')[0]) if (str(x)!='nan')&((str(x).startswith('1')) or (str(x).startswith('1')) or (str(x).startswith('3'))) else 0)
+    if 'Garaža' in df.columns:
+        df['garage_places'] = df['Garaža'].apply(lambda x: int(str(x).split(' ')[0]) if str(x)!='nan' else 0)
+        df.loc[df['garage_places']>20, 'garage_places'] = 1
+        df.loc[df['garage_places']>4, 'garage_places'] = 5
 
     df['delay_days'] = df['Oglas ažuriran'].apply(lambda x: int(str(x).split(' ')[1]) if len(str(x).split(' '))>1 else 0)
     df.loc[df['Oglas ažuriran'].apply(lambda x: len(str(x).split(' ')))<3, 'Oglas ažuriran'] = '   '
@@ -52,17 +62,21 @@ def prepare(path):
         df.loc[df['Oglas ažuriran'].apply(lambda x: str(x).split(' ')[2]).isin(['mesec', 'meseca', 'meseci']), 'delay_days']*30
     df['date_update'] = pd.to_datetime(df['end_date']) .dt.date - df['delay_days'].apply(lambda x: timedelta(days=x)).fillna(0)
     df['date_update'] = pd.to_datetime(df['date_update'])
-    df['Stanje'] = df['Stanje'].apply(lambda  x: str(x).strip())
-    df['Grejanje'] = df['Grejanje'].apply(lambda  x: str(x).strip())
+    if 'Stanje' in df.columns:
+        df['Stanje'] = df['Stanje'].apply(lambda  x: str(x).strip())
+    if 'Grejanje' in df.columns:
+        df['Grejanje'] = df['Grejanje'].apply(lambda  x: str(x).strip())
     if 'Lift' not in df.columns:
         df['Lift'] = np.nan
     df['Lift'] = df['Lift'].apply(lambda  x: str(x).strip())
     df['Tip'] = df['Tip'].apply(lambda  x: str(x).strip())
     df['street'] = df['street'].apply(lambda  x: str(x).strip().title())
-    df['Infrastruktura'] = df['Infrastruktura'].apply(lambda  x: str(x).strip().title())
+    if 'Infrastruktura' in df.columns:
+        df['Infrastruktura'] = df['Infrastruktura'].apply(lambda  x: str(x).strip().title())
     df['house_number'] = df['street'].apply(lambda  x: x.split(' ')[-1] if x.split(' ')[-1][0].isnumeric() else '')
     df['street'] = df['street'].apply(lambda  x: ' '.join(x.split(' ')[:-1]) if x.split(' ')[-1][0].isnumeric() else x)
-    df['Nameštenost'] = df['Nameštenost'].apply(lambda  x: str(x).strip())
+    if 'Nameštenost' in df.columns:
+        df['Nameštenost'] = df['Nameštenost'].apply(lambda  x: str(x).strip())
     df['Uknjiženost'] = df['Uknjiženost'].apply(lambda  x: str(x).strip())
     df['Režije'] = '-'
 
@@ -147,6 +161,8 @@ def prepare(path):
 if __name__ == '__main__':
     #sale
 
+    path = '4zida/land/sale'
+    prepare(path)
     path = '4zida/apartments/sale'
     prepare(path)
     #rent

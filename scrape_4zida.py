@@ -88,6 +88,10 @@ def get_pages(path):
             description = re.findall(r"class=\"ed-description collapsed-description ng-star-inserted\">(.+)<\/pre>", p)
             if len(description)>0:
                 ret['description'] = description[0]
+            else:
+            	description = re.findall(r"class=\"mt-4\">(.+)<\/p>", p)
+            	if len(description)>0:
+                    ret['description'] = description[0]
             title = re.findall(r"<title>(.+)<\/title>", p)
             ret['title'] = title[0]
             ret['end_date'] = datetime.datetime.now().date()
@@ -107,6 +111,21 @@ def get_pages(path):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    #land
+    #get links
+
+    path = '4zida/land/sale'
+    links = ['https://www.4zida.rs/prodaja-placeva?jeftinije_od=20000eur&struktura=gradjevinsko-zemljiste&strana=',
+             'https://www.4zida.rs/prodaja-placeva?skuplje_od=20000eur&jeftinije_od=40000eur&struktura=gradjevinsko-zemljiste&strana=',
+             'https://www.4zida.rs/prodaja-placeva?skuplje_od=40000eur&jeftinije_od=80000eur&struktura=gradjevinsko-zemljiste&strana=',
+             'https://www.4zida.rs/prodaja-placeva?skuplje_od=80000eur&jeftinije_od=130000eur&struktura=gradjevinsko-zemljiste&strana=',
+             'https://www.4zida.rs/prodaja-placeva?skuplje_od=130000eureur&struktura=gradjevinsko-zemljiste&strana=',
+             ]
+    pattern = r"https:\/\/www.4zida.rs\/prodaja-placeva\/[^/]+\/[^/]+\/[^/\"]+"
+    for link in links:
+        get_links(path, link, pattern)
+    #get pages
+    get_pages(path)
     #rent
     #get links
 

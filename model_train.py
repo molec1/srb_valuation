@@ -8,6 +8,12 @@ from sklearn.metrics import mean_absolute_percentage_error as mape
 
 import pickle
 
+basic_cols = ['area', 'rooms', 'floor_number', 'parking_places', 'garage_places',
+              'price', 'city', 'region', 'landmark',
+              'Tip', 'Lift', 'Godina izgradnje', 'street', 'link', 'Stanje',
+              'Uknjiženost', 'Grejanje', 'Infrastruktura', 'floors', 'Nameštenost',
+              'date_update', 'land_area']
+
 
 def mdape(y, pred):
     return (np.sqrt(np.square(y-pred))/y).median()
@@ -15,11 +21,7 @@ def mdape(y, pred):
 def train(path):
     raw = pd.read_parquet(path+'/prepared.parquet')
     #print(raw.columns)
-    df = raw[['area', 'rooms', 'floor_number', 'parking_places', 'garage_places',
-              'price', 'city', 'region', 'landmark',
-              'Tip', 'Lift', 'Godina izgradnje', 'street', 'link', 'Stanje',
-              'Uknjiženost', 'Grejanje', 'Infrastruktura', 'floors', 'Nameštenost',
-              'date_update', 'land_area']].drop_duplicates().copy()
+    df = raw[basic_cols].drop_duplicates().copy()
     df['ppm'] = df['price'] / df['area']
     #print(df.area.describe(percentiles=[0.1,0.2,0.8,0.9]).T)
     df = df[df.area.between(20, 300)]
@@ -90,8 +92,11 @@ def load_model(path):
 
 def features_encode(df_):
     df = df_.copy()
-    df['parking_places'] = df['parking_places'].replace({'nan': 0.5})
-    df['garage_places'] = df['garage_places'].replace({'nan': 0})
+    for b in basic_cols:
+        if b not in df.columns:
+            df[b] = '-'
+    df['parking_places'] = df['parking_places'].replace({'nan': 0.5, '-': 0.})
+    df['garage_places'] = df['garage_places'].replace({'nan': 0, '-': 0.})
     df['Stanje'] = df['Stanje'].replace({'nan': '-'}).fillna('-').apply(lambda x: x.strip().title())
     df['Uknjiženost'] = df['Uknjiženost'].replace({'nan': '-'}).fillna('-').apply(lambda x: x.strip())
     df['Grejanje'] = df['Grejanje'].replace({'nan': '-'}).fillna('-').apply(lambda x: x.strip().title())
@@ -103,14 +108,17 @@ def features_encode(df_):
     df['trend'] = (df['date_update'] - pd.to_datetime('2022-06-01')).apply(lambda x: x.days)
     df['trend_month'] = df['trend']//30
 
-    df['decade'] = df['Godina izgradnje'].apply(lambda x: int(x//10)*10 if not pd.isna(x) else 0)
+    if len(df['Godina izgradnje'].unique())>1:
+        df['decade'] = df['Godina izgradnje'].apply(lambda x: int(x//10)*10 if not pd.isna(x) else 0)
+    else:
+        df['decade'] = 1
     df['city_region'] = df.city + '_' + df.region
     df['city_landmark'] = df.city_region + '_' + df.landmark
     df['city_street'] = df.city_landmark + '_' + df.street
     df['anti_area'] = -np.log1p(df['area'])
 
-    df['floors'] = df['floors'].fillna(0)
-    df['floor_number'] = df['floor_number'].fillna(0)
+    df['floors'] = df['floors'].fillna(1).replace({'-': 1})
+    df['floor_number'] = df['floor_number'].fillna(0).replace({'-': 0})
     df['top_floor'] = ((df['floors'] - df['floor_number'])<1).apply(lambda x: 1 if x else 0)
 
     infr_options = df['Infrastruktura'].unique()
@@ -142,7 +150,7 @@ def features_encode(df_):
     df = pd.get_dummies(data=df, columns=['Grejanje'])
     #df = pd.get_dummies(data=df, columns=['Infrastruktura'])
     df = pd.get_dummies(data=df, columns=['Nameštenost'])
-    if len(df[df.land_area>1])>0:
+    if len(df[df.land_area.replace({'-': 0})>1])>0:
         df['city_house'] = df['city'].copy()
     df = pd.get_dummies(data=df, columns=['city'])
     df = pd.get_dummies(data=df, columns=['city_region'])
@@ -153,7 +161,7 @@ def features_encode(df_):
     df = pd.get_dummies(data=df, columns=['lift_floor'])
     df = pd.get_dummies(data=df, columns=['trend_month'])
 
-    if len(df[df.land_area>1])>0:
+    if len(df[df.land_area.replace({'-': 0})>1])>0:
         df = pd.get_dummies(data=df, columns=['city_house'], prefix='dummy_city_house')
         df['log_land_area'] = np.log1p(df['land_area'])
         for c in [x for x in df.columns if x.startswith('city_')]:
@@ -165,6 +173,8 @@ def features_encode(df_):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
 
+    #land
+    train('4zida/land/sale')
     #sale
     train('4zida/apartments/sale')
     #rent
