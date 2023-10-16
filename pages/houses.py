@@ -21,7 +21,7 @@ conf_reg = complex_func(path+'/confidence_model.sav')
 print(datetime.datetime.now(), 'model is loaded')
 
 property = {}
-property['city'] = st.selectbox('City:', df['city'].sort_values().unique(), 12)
+property['city'] = st.selectbox('City:', df['city'].sort_values().unique(), 13)
 property['region'] = st.selectbox('Region:', df.loc[df['city'] == property['city'], 'region'].sort_values().unique())
 property['landmark'] = st.selectbox('Landmark:', df.loc[(df['city'] == property['city'])&
                                                         (df['region'] == property['region']), \
