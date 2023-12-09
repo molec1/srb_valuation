@@ -79,7 +79,7 @@ def get_pages(path):
             price = re.findall(r"class=\"label\">Cena:<\/div><div _ngcontent-ng-c\d+ class=\"value\"><strong _ngcontent-ng-c\d+>([\d\(.\d)?]+)", p)
             if len(price)>0:
                 ret['price'] = price[0]
-            address = re.findall(r"<app-place-info _ngcontent-ng-c\d+ _nghost-ng-c\d+><div _ngcontent-ng-c\d+ class=\"flex flex-col\"><strong _ngcontent-ng-c\d+ class=\"font-semibold\">(.+)<\/strong><span _ngcontent-ng-c\d+>(.+)<\/span><\/div><\/app-place-info>", p)
+            address = re.findall(r"<app-place-info _ngcontent-ng-c\d+ _nghost-ng-c\d+ ngh=\"0\"><div _ngcontent-ng-c\d+ class=\"flex flex-col\"><strong _ngcontent-ng-c\d+ class=\"font-semibold\">(.+)<\/strong><span _ngcontent-ng-c\d+>(.+)<\/span><\/div><\/app-place-info>", p)
             if len(address)>0:
                 if len(address[0]) > 0:
                     ret['street'] = address[0][0]

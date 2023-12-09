@@ -54,6 +54,7 @@ def prepare(path):
         df['garage_places'] = df['Garaža'].apply(lambda x: int(str(x).split(' ')[0]) if str(x)!='nan' else 0)
         df.loc[df['garage_places']>20, 'garage_places'] = 1
         df.loc[df['garage_places']>4, 'garage_places'] = 5
+    df.loc[df['garage_places']=='-', 'garage_places'] = 0
 
     df['delay_days'] = df['Oglas ažuriran'].apply(lambda x: int(str(x).split(' ')[1]) if len(str(x).split(' '))>1 else 0)
     df.loc[df['Oglas ažuriran'].apply(lambda x: len(str(x).split(' ')))<3, 'Oglas ažuriran'] = '   '
