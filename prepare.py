@@ -16,8 +16,9 @@ def prepare(path):
     for b in basic_cols:
         if b not in df.columns:
             df[b] = '-'
-    
+    print('initial size', len(df))
     df = df[pd.isna(df['Površina'])==False]
+    print('with area', len(df))
     df['area'] = df['Površina'].apply(lambda x: float(str(x).split(' ')[0]))
     df['rooms'] = df['title'].apply(lambda x: x.split(' ')[0])
     if 'Broj soba' in df.columns:
@@ -143,13 +144,17 @@ def prepare(path):
         del df['Useljivo od']
 
     df = df.loc[df['price'] != 1.]
+    print('with price', len(df))
     if 'sale' in path:
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x)
         df.loc[df['price']<500, 'price'] = df.loc[df['price']<500, 'price']*1000
     else:
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x*1000 if x<10 else x)
-    df = df[df.price.between(df.price.median()/4, df.price.median()*4)]
     df['ppm'] = df.price / df.area
+    df['ppm_median'] = df.groupby(['city', 'region'])['ppm'].transform('median')
+    df = df[df.ppm.between(df.ppm_median/4, df.ppm_median*4)]
+    del df['ppm_median']
+    print('median price filter', len(df))
     print(df.describe(include='all').T[['count', 'top']])
     print(df.columns)
     print(len(df))
