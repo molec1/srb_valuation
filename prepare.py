@@ -152,7 +152,10 @@ def prepare(path):
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x*1000 if x<10 else x)
     df['ppm'] = df.price / df.area
     df['ppm_median'] = df.groupby(['city', 'region'])['ppm'].transform('median')
-    df = df[df.ppm.between(df.ppm_median/4, df.ppm_median*4)]
+    #df['ppm_std'] = df.groupby(['city', 'region'])['ppm'].transform('std')
+    #df[~(df.ppm.between(df.ppm_median/2, df.ppm_median*2))].to_csv('bad_prices.csv')
+    if 'land' not in path:
+        df = df[df.ppm.between(df.ppm_median/2, df.ppm_median*2)]
     del df['ppm_median']
     print('median price filter', len(df))
     print(df.describe(include='all').T[['count', 'top']])

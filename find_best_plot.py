@@ -22,7 +22,8 @@ print(property)
 
 property['Plac'] = '0'
 property['land_area'] = 0
-property['date_update'] = datetime.datetime.now()
+val_date = datetime.datetime.now() - datetime.timedelta(days=10)
+property['date_update'] = val_date
 
 beograd_plots = df[(df.city=='Beograd')&(df.area>3)]  # &(df.date_update>'2023-12-01')
 #print(beograd_plots[['city', 'region', 'landmark', 'street', 'price', 'area']])
@@ -44,8 +45,9 @@ property_enc['Price per m2'] = np.expm1(reg.predict(property_enc[model_cols])).r
 property_df['Price per m2'] = property_enc['Price per m2']
 property_df['valuation'] = property_df['Price per m2'] * property_df['area'].round()
 property_df.to_csv('test.csv')
-res = property_df.groupby('link').agg({'valuation': sum, 'price': max, 'region': max, 'landmark': max, 'street': max})
+res = property_df.groupby('link').agg({'valuation': sum, 'price': max, 'Price per m2': 'mean', 'region': max, 'landmark': max, 'street': max})
 res['profit'] = res['valuation'] - res['price']
+res = res.sort_values(by='profit', ascending=False)
 res.to_csv('res.csv')
 print(res)
 print(datetime.datetime.now(), 'sale valuated')

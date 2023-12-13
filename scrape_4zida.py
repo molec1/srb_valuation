@@ -32,7 +32,8 @@ def get_links(path, link, pattern):
         else:
             #print('no new links')
             if i>10:
-                print('no new links')  # break
+                print('no new links')  # 
+                break
 
 
 def seen_links(path):
