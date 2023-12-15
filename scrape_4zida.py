@@ -5,6 +5,7 @@ import pandas as pd
 import datetime
 import os
 import html
+import random
 
 def get_links(path, link, pattern):
     old_links = seen_links(path)
@@ -65,9 +66,12 @@ def get_pages(path):
     print(len(links))
     links = [x for x in links if x not in old_links]
     links = links[:-1]
+    links = links[:2000]
+    if len(links)<2000:
+        links = links + random.sample(old_links, 2000-len(links))
     print(len(links))
     scraped = []
-    for l in links[:2000]:
+    for l in links:
         try:
             ret = {'link': l}
             print(l)
