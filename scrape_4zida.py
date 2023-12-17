@@ -67,8 +67,8 @@ def get_pages(path):
     links = [x for x in links if x not in old_links]
     links = links[:-1]
     links = links[:2000]
-    if len(links)<2000:
-        links = links + random.sample(old_links, 2000-len(links))
+    if len(links)<500:
+        links = links + random.sample(old_links, 500-len(links))
     print(len(links))
     scraped = []
     for l in links:
