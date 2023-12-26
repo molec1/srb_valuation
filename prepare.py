@@ -114,8 +114,10 @@ def prepare(path):
     df.loc[df['lower_description'].str.contains('dupleks'), 'Tip'] = 'Dupleks'
     df.loc[df['lower_description'].str.contains('salonac'), 'Tip'] = 'Salonac'
 
-    df.loc[df['lower_description'].str.contains('slobodan park'), 'parking_places'] = 3
-    df.loc[df['lower_description'].str.contains('parking mesto'), 'parking_places'] = 1
+    df.loc[df['lower_description'].str.contains('slobodan park'), 'parking_places'] = '3'
+    df.loc[df['lower_description'].str.contains('parking mesto'), 'parking_places'] = '1'
+    df.loc[df['parking_places']=='-', 'parking_places'] = '0'
+    df['parking_places'] = df['parking_places'].apply(int)
     df.loc[df['lower_description'].str.contains('garaža'), 'garage_places'] = 1
 
     df.loc[df['lower_description'].str.contains('centralno grejanje'), 'Grejanje'] = 'centralno grejanje'
