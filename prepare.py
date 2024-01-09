@@ -153,7 +153,8 @@ def prepare(path):
     else:
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x*1000 if x<10 else x)
     df['ppm'] = df.price / df.area
-    df['ppm_median'] = df.groupby(['city', 'region'])['ppm'].transform('median')
+    df['ppm_median'] = 0
+    df.loc[df.price>10_000, 'ppm_median'] = df.loc[df.price>10_000].groupby(['city', 'region'])['ppm'].transform('median')
     #df['ppm_std'] = df.groupby(['city', 'region'])['ppm'].transform('std')
     #df[~(df.ppm.between(df.ppm_median/2, df.ppm_median*2))].to_csv('bad_prices.csv')
     if 'land' not in path:
@@ -163,7 +164,7 @@ def prepare(path):
     print(df.describe(include='all').T[['count', 'top']])
     print(df.columns)
     print(len(df))
-    df = df.sort_values('date_update').drop_duplicates(subset=['link'], keep='last')
+    df = df.sort_values('date_update').drop_duplicates(subset=['link', 'price'], keep='last')
     print('last record', df.end_date.max())
     df.to_parquet(path+'/prepared.parquet')
 

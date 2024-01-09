@@ -103,7 +103,7 @@ if property['area']>0:
                  (df['region'] == property['region']) &
                  (df['landmark'] == property['landmark'])
              ,
-             ['Updated', 'rooms', 'area', 'street', 'Price per m2', 'price',
+             ['Updated', 'rooms', 'area', 'street', 'Price per m2', 'price', 'pred_ppm',
               'Grejanje', 'Stanje', 'parking_places', 'garage_places', 'link']
              ])
 

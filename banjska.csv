@@ -1,4 +1,4 @@
-broj,rooms,area,floor_number,floors,Stanje,Grejanje,Tip,Lift,Godina izgradnje,parking_places,garage_places,Uknjiženost,Nameštenost,Infrastructure
+broj,rooms,area,floor_number,floors,Stanje,Grejanje,Tip,Lift,Godina izgradnje,parking_places,garage_places,Uknjiženost,Nameštenost,Infrastructura
 A,Jednosoban,32,-1,6,novo,centralno grejanje,Stan u zgradi,ima lift,2024,0,0,uknjiženo,namešteno,Terasa
 1,Dvosoban,68,-1,6,novo,centralno grejanje,Stan u zgradi,ima lift,2024,0,0,uknjiženo,namešteno,Terasa
 2,Dvoiposoban,64,-1,6,novo,centralno grejanje,Stan u zgradi,ima lift,2024,0,0,uknjiženo,namešteno,Terasa

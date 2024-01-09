@@ -24,7 +24,7 @@ def train(path):
     df = raw[basic_cols].drop_duplicates().copy()
     df['ppm'] = df['price'] / df['area']
     #print(df.area.describe(percentiles=[0.1,0.2,0.8,0.9]).T)
-    df = df[df.area.between(20, 300)]
+    df = df[df.area.between(20, 200)]
     df['target'] = np.log1p(df['price'] / df['area'])
     print('len df:', len(df))
     if len(df[df.land_area>1])>0:
@@ -56,7 +56,7 @@ def train(path):
     for c in cnts:
         if cnts[c]<n:
             print(c, cnts[c], n)
-    reg = linear_model.Ridge(alpha=2, positive=True)
+    reg = linear_model.Ridge(alpha=0.1, positive=True)
     reg.fit(X_train, y_train)
     #print(reg.intercept_)
     #print(dict(zip(model_cols, reg.coef_)))
@@ -75,6 +75,7 @@ def train(path):
     df_nonencoded['pred_ppm'] = df['pred_ppm']
     df_nonencoded['pred_price'] = df_nonencoded['pred_ppm'] * df_nonencoded['area']
     df_nonencoded.to_parquet(path+'/valuated.parquet')
+    #df_nonencoded[df_nonencoded.region=='Zvezdara opština'].to_csv(path+'/valuated.csv')
 
     df['abs_err'] = abs(df['pred_lppm']-df['target'])
     #print(df['abs_err'].describe().T)
