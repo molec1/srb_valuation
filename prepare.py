@@ -152,13 +152,16 @@ def prepare(path):
         df.loc[df['price']<500, 'price'] = df.loc[df['price']<500, 'price']*1000
     else:
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x*1000 if x<10 else x)
+    df = df.loc[df.price.between(10_000, 10_000_000)].copy()
+    print('price filter', len(df))
+    df = df.loc[df.area>0].copy()
+    print('area filter', len(df))
     df['ppm'] = df.price / df.area
-    df['ppm_median'] = 0
-    df.loc[df.price>10_000, 'ppm_median'] = df.loc[df.price>10_000].groupby(['city', 'region'])['ppm'].transform('median')
+    df['ppm_median'] = df.groupby(['city', 'region'])['ppm'].transform('median')
     #df['ppm_std'] = df.groupby(['city', 'region'])['ppm'].transform('std')
     #df[~(df.ppm.between(df.ppm_median/2, df.ppm_median*2))].to_csv('bad_prices.csv')
     if 'land' not in path:
-        df = df[df.ppm.between(df.ppm_median/2, df.ppm_median*2)]
+        df = df[df.ppm.between(df.ppm_median/1.8, df.ppm_median*2)]
     del df['ppm_median']
     print('median price filter', len(df))
     print(df.describe(include='all').T[['count', 'top']])
