@@ -152,7 +152,8 @@ def prepare(path):
         df.loc[df['price']<500, 'price'] = df.loc[df['price']<500, 'price']*1000
     else:
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x*1000 if x<10 else x)
-    df = df.loc[df.price.between(10_000, 10_000_000)].copy()
+    #print(path, df.price.describe([0.01, 0.025, 0.975, 0.99]))
+    df = df.loc[df.price.between(df.price.quantile(0.025), df.price.quantile(0.975))].copy()
     print('price filter', len(df))
     df = df.loc[df.area>0].copy()
     print('area filter', len(df))
