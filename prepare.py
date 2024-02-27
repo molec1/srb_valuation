@@ -145,7 +145,7 @@ def prepare(path):
     if 'Useljivo od' in df.columns:
         del df['Useljivo od']
 
-    df = df.loc[df['price'] != 1.]
+    df = df.loc[df['price'] > 1.]
     print('with price', len(df))
     if 'sale' in path:
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x)
@@ -162,7 +162,7 @@ def prepare(path):
     #df['ppm_std'] = df.groupby(['city', 'region'])['ppm'].transform('std')
     #df[~(df.ppm.between(df.ppm_median/2, df.ppm_median*2))].to_csv('bad_prices.csv')
     if 'land' not in path:
-        df = df[df.ppm.between(df.ppm_median/1.8, df.ppm_median*2)]
+        df = df[df.ppm.between(df.ppm_median/2, df.ppm_median*2.5)]
     del df['ppm_median']
     print('median price filter', len(df))
     print(df.describe(include='all').T[['count', 'top']])
