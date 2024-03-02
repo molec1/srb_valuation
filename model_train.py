@@ -23,7 +23,7 @@ def train(path):
     #print(raw.columns)
     df = raw[basic_cols].drop_duplicates().copy()
     df['ppm'] = df['price'] / df['area']
-    print(df.area.describe(percentiles=[0.1,0.2,0.8,0.9]).T)
+    #print(df.area.describe(percentiles=[0.1,0.2,0.8,0.9]).T)
     df = df[df.area.between(20, 200)]
     df['target'] = np.log1p(df['price'] / df['area'])
     print('len df:', len(df), path)
