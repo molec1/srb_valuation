@@ -35,8 +35,7 @@ def prepare(path):
     df.loc[df['floor_number']=='potkrovlje', 'floor_number'] = df.loc[df['floor_number']=='potkrovlje', 'floors']
     df['floor_number'] = df['floor_number'].apply(lambda x: x if str(x).strip() not in underground_markers else 0 if str(x)=='visoko prizemlje' else -1)
     df['floor_number'] = df['floor_number'].apply(lambda x: -1 if x in underground_markers+[''] else int(x))
-    df['floors'] = df['Spratnost'].apply(lambda x: str(x).strip().split('/')[1].replace(' spratova', '').replace(' sprata', '').replace(' sprat', '') if len(str(x).strip().split('/'))>1 else '')
-    df['floors'] = df['floors'].apply(lambda x: int(x) if len(x)>1 else 0)
+    df['floors'] = df['floors'].apply(lambda x: int(x) if len(x)>=1 else 0)
     df.loc[df.link.str.contains('jednoetazna'), 'floors'] = 1
     df.loc[df.link.str.contains('dvoetazna'), 'floors'] = 2
     df.loc[df.link.str.contains('troeatazna'), 'floors'] = 3
@@ -62,7 +61,7 @@ def prepare(path):
     df.loc[df['Oglas ažuriran'].apply(lambda x: str(x).split(' ')[2]).isin(['sat', 'sati', 'sata', 'minut', 'minuta']), 'delay_days'] = 0
     df.loc[df['Oglas ažuriran'].apply(lambda x: str(x).split(' ')[2]).isin(['mesec', 'meseca', 'meseci']), 'delay_days'] = \
         df.loc[df['Oglas ažuriran'].apply(lambda x: str(x).split(' ')[2]).isin(['mesec', 'meseca', 'meseci']), 'delay_days']*30
-    df['date_update'] = pd.to_datetime(df['end_date']) .dt.date - df['delay_days'].apply(lambda x: timedelta(days=x)).fillna(0)
+    df['date_update'] = pd.to_datetime(df['end_date']).dt.date - df['delay_days'].apply(lambda x: timedelta(days=x)).fillna(0)
     df['date_update'] = pd.to_datetime(df['date_update'])
     if 'Stanje' in df.columns:
         df['Stanje'] = df['Stanje'].apply(lambda  x: str(x).strip())
@@ -145,7 +144,7 @@ def prepare(path):
     if 'Useljivo od' in df.columns:
         del df['Useljivo od']
 
-    df = df.loc[df['price'] > 1.]
+    df = df.loc[df['price'].apply(str) > '']
     print('with price', len(df))
     if 'sale' in path:
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x)
@@ -153,7 +152,7 @@ def prepare(path):
     else:
         df['price'] = df['price'].apply(lambda x: float(x.replace('.', '')) if type(x)==str else x*1000 if x<10 else x)
     #print(path, df.price.describe([0.01, 0.025, 0.975, 0.99]))
-    df = df.loc[df.price.between(df.price.quantile(0.025), df.price.quantile(0.975))].copy()
+    df = df.loc[df.price.between(1, 10_000_000)].copy()
     print('price filter', len(df))
     df = df.loc[df.area>0].copy()
     print('area filter', len(df))

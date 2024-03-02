@@ -23,7 +23,9 @@ def train(path):
     #print(raw.columns)
     df = raw[basic_cols].drop_duplicates().copy()
     df['ppm'] = df['price'] / df['area']
-    #print(df.area.describe(percentiles=[0.1,0.2,0.8,0.9]).T)
+    
+    #df = df[df.city=='Beograd']
+    
     df = df[df.area.between(20, 200)]
     df['target'] = np.log1p(df['price'] / df['area'])
     print('len df:', len(df), path)
@@ -31,6 +33,7 @@ def train(path):
         df = df[(df.land_area>100)&(df.land_area<2_000)]
         print('len df la shrink:', len(df))
     df_nonencoded = df.copy()
+    print(df.describe().T)
     df = features_encode(df)
     model_cols = list(df.columns)
     model_cols.remove('region')
@@ -45,7 +48,7 @@ def train(path):
     model_cols.remove('date_update')
     model_cols.remove('Infrastruktura')
     for m in model_cols:
-        if len(df[df[m]!=0])<5:
+        if len(df[df[m]!=0])<4:
             #print(m)
             model_cols.remove(m)
 
@@ -56,13 +59,16 @@ def train(path):
     for c in cnts:
         if cnts[c]<n:
             print(c, cnts[c], n)
-    reg = linear_model.Ridge(alpha=0.1, positive=True)
+    alpha = 0.1
+    if path=='4zida/apartments/sale':
+        alpha = 0.1
+    print('number of features: ', len(model_cols))
+    reg = linear_model.Ridge(alpha=alpha, positive=True, tol=0.0000001)
     reg.fit(X_train, y_train)
     #print(reg.intercept_)
     #print(dict(zip(model_cols, reg.coef_)))
     pred_train = reg.predict(X_train)
     pred_test = reg.predict(X_test)
-    print('number of features: ', len(model_cols))
     print('train mape: ', mape(np.expm1(y_train), np.expm1(pred_train)))
     print('test mape: ', mape(np.expm1(y_test), np.expm1(pred_test)))
     print('train mdape: ', mdape(np.expm1(y_train), np.expm1(pred_train)))
@@ -75,7 +81,9 @@ def train(path):
     df_nonencoded['pred_ppm'] = df['pred_ppm']
     df_nonencoded['pred_price'] = df_nonencoded['pred_ppm'] * df_nonencoded['area']
     df_nonencoded.to_parquet(path+'/valuated.parquet')
-    #df_nonencoded[df_nonencoded.region=='Zvezdara opština'].to_csv(path+'/valuated.csv')
+    
+    #df_nonencoded[df_nonencoded.landmark=='Đeram'].to_csv(path+'/valuated_djeram.csv')
+
 
     df['abs_err'] = abs(df['pred_lppm']-df['target'])
     #print(df['abs_err'].describe().T)
@@ -110,12 +118,15 @@ def features_encode(df_):
     df['trend_month'] = df['trend']//30
 
     if len(df['Godina izgradnje'].unique())>1:
-        df['decade'] = df['Godina izgradnje'].apply(lambda x: int(x//10)*10 if not pd.isna(x) else 0)
+        df['decade'] = df['Godina izgradnje'].apply(lambda x: int(x//10)*10 if not pd.isna(x) else 2020)
     else:
-        df['decade'] = 1
+        df['decade'] = 2020
     df['city_region'] = df.city + '_' + df.region
     df['city_landmark'] = df.city_region + '_' + df.landmark
     df['city_street'] = df.city_landmark + '_' + df.street
+    df['city_trend_month'] = df['city'] + '_' + df['trend_month'].apply(str)
+    df['city_region_trend_month'] = df['city_region'] + '_' + df['trend_month'].apply(str)
+    #df['city_landmark_trend_month'] = df['city_landmark'] + '_' + df['trend_month'].apply(str)
     df['anti_area'] = -np.log1p(df['area'])
 
     df['floors'] = df['floors'].fillna(1).replace({'-': 1})
@@ -134,10 +145,10 @@ def features_encode(df_):
         df.loc[df['infr_arr'].apply(lambda x: infr[5:] in x), infr] = 1
     del df['infr_arr']
 
-    df['region_parking'] = df['city_region']+'_has_parking'
-    df.loc[df['parking_places'].fillna(0)==0, 'region_parking'] = 'no_parking'
-    df['region_garage'] = df['city_region'] + '_has_garage'
-    df.loc[df['garage_places'].fillna(0)==0, 'region_garage'] = 'no_garage'
+    #df['region_parking'] = df['city_region']+'_has_parking'
+    #df.loc[df['parking_places'].fillna(0)==0, 'region_parking'] = 'no_parking'
+    #df['region_garage'] = df['city_region'] + '_has_garage'
+    #df.loc[df['garage_places'].fillna(0)==0, 'region_garage'] = 'no_garage'
 
     df['lift_floor'] = df['Lift'].fillna('no_info').apply(lambda x: 'has_lift_' if 'Ima' in x else 'no_lift_') + df['floor_number'].apply(str)
 
@@ -157,10 +168,13 @@ def features_encode(df_):
     df = pd.get_dummies(data=df, columns=['city_region'])
     df = pd.get_dummies(data=df, columns=['city_landmark'])
     df = pd.get_dummies(data=df, columns=['city_street'])
-    df = pd.get_dummies(data=df, columns=['region_parking'])
-    df = pd.get_dummies(data=df, columns=['region_garage'])
+    #df = pd.get_dummies(data=df, columns=['region_parking'])
+    #df = pd.get_dummies(data=df, columns=['region_garage'])
     df = pd.get_dummies(data=df, columns=['lift_floor'])
     df = pd.get_dummies(data=df, columns=['trend_month'])
+    df = pd.get_dummies(data=df, columns=['city_trend_month'])
+    df = pd.get_dummies(data=df, columns=['city_region_trend_month'])
+    #df = pd.get_dummies(data=df, columns=['city_landmark_trend_month'])
 
     if len(df[df.land_area.replace({'-': 0})>1])>0:
         df = pd.get_dummies(data=df, columns=['city_house'], prefix='dummy_city_house')
