@@ -22,6 +22,7 @@ def get_links(path, link, pattern):
             break
         links = [x for x in links if x not in old_links]
         links = [x for x in links if '"' not in x]
+        links = [x.replace('\\', '') for x in links]
         print(links)
         if len(links)>0:
             #store them to the file with links
@@ -73,9 +74,9 @@ def get_pages(path):
     scraped = []
     for l in links:
         try:
-            ret = {'link': l}
+            ret = {'link': l.replace('\\', '')}
             print(l)
-            page = requests.get(l)
+            page = requests.get(l.replace('\\', ''))
             p = html.unescape(page.content.decode('utf-8'))
             # print(p)
             items = re.findall(r"\"label\">([\w\s\d\\\&\#;]+):<\/div><strong _ngcontent-ng-c\d+ class=\"value \w+-\w+ \w+-\w+\">([\w\d\s\\\/., \(\)\&\#;]+)\s?", p)
@@ -126,7 +127,7 @@ if __name__ == '__main__':
              'https://www.4zida.rs/prodaja-placeva?skuplje_od=80000eur&jeftinije_od=130000eur&struktura=gradjevinsko-zemljiste&strana=',
              'https://www.4zida.rs/prodaja-placeva?skuplje_od=130000eureur&struktura=gradjevinsko-zemljiste&strana=',
              ]
-    pattern = r"https:\/\/www.4zida.rs\/prodaja-placeva\/[^/]+\/[^/]+\/[^/\"]+"
+    pattern = r"https:\/\/www.4zida.rs\/prodaja-placeva\/[^\/]+\/[^\/]+\/[^\/\"]+"
     for link in links:
         get_links(path, link, pattern)
     #get pages
@@ -153,7 +154,7 @@ if __name__ == '__main__':
              'https://www.4zida.rs/izdavanje-stanova?skuplje_od=1500eur&jeftinije_od=10000eur&strana=',
              ]
     link = 'https://www.4zida.rs/izdavanje-stanova?jeftinije_od=10000eur&strana='
-    pattern = r"https:\/\/www.4zida.rs\/izdavanje-stanova\/[^/]+\/[^/]+\/[^/\"]+"
+    pattern = r"https:\/\/www.4zida.rs\/izdavanje-stanova\/[^\/]+\/[^\/]+\/[^\/\"]+"
     for link in links:
         get_links(path, link, pattern)
     #get pages
@@ -192,7 +193,7 @@ if __name__ == '__main__':
              'https://www.4zida.rs/prodaja-stanova?skuplje_od=500000eur&strana=',
              ]
     link = 'https://www.4zida.rs/prodaja-stanova?skuplje_od=10000eur&strana='
-    pattern = r"https:\/\/www.4zida.rs\/prodaja-stanova\/[^/]+\/[^/]+\/[^/\"]+"
+    pattern = r"https:\/\/www.4zida.rs\/prodaja-stanova\/[^\/]+\/[^\/]+\/[^\/\"]+"
     for link in links:
         get_links(path, link, pattern)
     #get pages
@@ -229,7 +230,7 @@ if __name__ == '__main__':
              'https://www.4zida.rs/prodaja-kuca?skuplje_od=300000eur&jeftinije_od=500000eur&strana=',
              'https://www.4zida.rs/prodaja-kuca?skuplje_od=500000eur&strana=',
              ]
-    pattern = r"https:\/\/www.4zida.rs\/prodaja-kuca\/[^/]+\/[^/]+\/[^/\"]+"
+    pattern = r"https:\/\/www.4zida.rs\/prodaja-kuca\/[^\/]+\/[^\/]+\/[^\/\"]+"
     for link in links:
         get_links(path, link, pattern)
     #get pages
